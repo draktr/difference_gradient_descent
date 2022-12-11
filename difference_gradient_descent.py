@@ -14,11 +14,14 @@ class DifferenceGradientDescent():
 
     def difference_gradient_descent(self,
                                     initial_parameters,
-                                    difference,
+                                    differences,
                                     learning_rates,
                                     epochs,
                                     constants = None,
                                     threads = 1):
+
+        if epochs != len(learning_rates) or epochs != len(differences) or len(learning_rates) != len(differences):
+            raise ValueError("Number of epochs should be equal to the number of learning rates and differences given")
 
         n_parameters = len(initial_parameters)
         outputs = np.zeros([epochs, self.n_additional_outputs+1])
@@ -27,7 +30,7 @@ class DifferenceGradientDescent():
         difference_objective = np.zeros(n_parameters)
 
         if threads == 1:
-            for epoch, rate in zip(range(epochs), learning_rates):
+            for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 if constants is None:
                     current_parameters = parameters[epoch]
                 else:
@@ -50,7 +53,7 @@ class DifferenceGradientDescent():
                 parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         elif threads > 1:
-            for epoch, rate in zip(range(epochs), learning_rates):
+            for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 # One set of parameters is needed for each partial derivative, and one is needed for the base case
                 current_parameters = np.zeros([n_parameters + 1, n_parameters])
                 current_parameters[0] = parameters[epoch]
@@ -79,13 +82,16 @@ class DifferenceGradientDescent():
 
     def partial_gradient_descent(self,
                                  initial_parameters,
-                                 difference,
+                                 differences,
                                  learning_rates,
                                  epochs,
                                  parameters_used,
                                  constants = None,
                                  threads = 1,
                                  rng_seed = 88):
+
+        if epochs != len(learning_rates) or epochs != len(differences) or len(learning_rates) != len(differences):
+            raise ValueError("Number of epochs should be equal to the number of learning rates and differences given")
 
         n_parameters = len(initial_parameters)
         outputs = np.zeros([epochs, self.n_additional_outputs+1])
@@ -95,7 +101,7 @@ class DifferenceGradientDescent():
         rng = np.random.default_rng(rng_seed)
 
         if threads == 1:
-            for epoch, rate in zip(range(epochs), learning_rates):
+            for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
                 # Evaluating the objective function that will count as "official" one for this epoch
                 outputs[epoch] = self.objective_function(np.append(parameters[epoch], constants))
@@ -117,7 +123,7 @@ class DifferenceGradientDescent():
                 parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         elif threads > 1:
-            for epoch, rate in zip(range(epochs), learning_rates):
+            for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
                 current_parameters = np.zeros([n_parameters, n_parameters])
