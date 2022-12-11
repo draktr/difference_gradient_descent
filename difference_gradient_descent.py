@@ -4,7 +4,7 @@ from inspect import signature
 from joblib import Parallel, delayed
 
 
-class GradientDescent():
+class DifferenceGradientDescent():
 
     def __init__(self,
                  objective_function):
@@ -12,13 +12,13 @@ class GradientDescent():
         self.objective_function = objective_function
         self.n_additional_outputs = len(signature(self.objective_function).parameters)-1
 
-    def gradient_descent(self,
-                         initial_parameters,
-                         difference,
-                         learning_rate,
-                         epochs,
-                         constants = None,
-                         threads = 1):
+    def difference_gradient_descent(self,
+                                    initial_parameters,
+                                    difference,
+                                    learning_rates,
+                                    epochs,
+                                    constants = None,
+                                    threads = 1):
 
         n_parameters = len(initial_parameters)
         outputs = np.zeros([epochs, self.n_additional_outputs+1])
@@ -27,7 +27,7 @@ class GradientDescent():
         difference_objective = np.zeros(n_parameters)
 
         if threads == 1:
-            for epoch in range(epochs):
+            for epoch, rate in zip(range(epochs), learning_rates):
                 if constants is None:
                     current_parameters = parameters[epoch]
                 else:
@@ -47,10 +47,10 @@ class GradientDescent():
                     difference_objective[parameter] = self.objective_function(current_parameters)[0]
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch+1] = parameters[epoch] - learning_rate * (difference_objective - outputs[epoch, 0]) / difference
+                parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         elif threads > 1:
-            for epoch in range(epochs):
+            for epoch, rate in zip(range(epochs), learning_rates):
                 # One set of parameters is needed for each partial derivative, and one is needed for the base case
                 current_parameters = np.zeros([n_parameters + 1, n_parameters])
                 current_parameters[0] = parameters[epoch]
@@ -70,7 +70,7 @@ class GradientDescent():
                 difference_objective = np.array([parallel_outputs[i][0] for i in range(1, n_parameters+1)])
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch+1] = parameters[epoch] - learning_rate * (difference_objective - outputs[epoch, 0]) / difference
+                parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         else:
             raise ValueError("Number of threads should be positive.")
@@ -80,7 +80,7 @@ class GradientDescent():
     def partial_gradient_descent(self,
                                  initial_parameters,
                                  difference,
-                                 learning_rate,
+                                 learning_rates,
                                  epochs,
                                  parameters_used,
                                  constants = None,
@@ -95,7 +95,7 @@ class GradientDescent():
         rng = np.random.default_rng(rng_seed)
 
         if threads == 1:
-            for epoch in range(epochs):
+            for epoch, rate in zip(range(epochs), learning_rates):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
                 # Evaluating the objective function that will count as "official" one for this epoch
                 outputs[epoch] = self.objective_function(np.append(parameters[epoch], constants))
@@ -114,10 +114,10 @@ class GradientDescent():
                         difference_objective[parameter] = outputs[epoch, 0]
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch+1] = parameters[epoch] - learning_rate * (difference_objective - outputs[epoch, 0]) / difference
+                parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         elif threads > 1:
-            for epoch in range(epochs):
+            for epoch, rate in zip(range(epochs), learning_rates):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
                 current_parameters = np.zeros([n_parameters, n_parameters])
@@ -137,7 +137,7 @@ class GradientDescent():
                 difference_objective[param_idx] = np.array([parallel_outputs[i][0] for i in range(1, parameters_used + 1)])
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch+1] = parameters[epoch] - learning_rate * (difference_objective - outputs[epoch, 0]) / difference
+                parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         else:
             raise ValueError("Number of threads should be positive.")
