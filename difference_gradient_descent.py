@@ -53,6 +53,9 @@ class DifferenceGradientDescent():
                 parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         elif threads > 1:
+            if len(parameters) != threads:
+                raise ValueError("Each parameter should have only one CPU thread.")
+
             for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 # One set of parameters is needed for each partial derivative, and one is needed for the base case
                 current_parameters = np.zeros([n_parameters + 1, n_parameters])
@@ -95,7 +98,7 @@ class DifferenceGradientDescent():
 
         n_parameters = len(initial_parameters)
         outputs = np.zeros([epochs, self.n_additional_outputs+1])
-        parameters = np.zeros([epochs, n_parameters])
+        parameters = np.zeros([epochs + 1, n_parameters])
         parameters[0] = initial_parameters
         difference_objective = np.zeros(n_parameters)
         rng = np.random.default_rng(rng_seed)
@@ -103,8 +106,13 @@ class DifferenceGradientDescent():
         if threads == 1:
             for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
+                if constants is None:
+                    current_parameters = parameters[epoch]
+                else:
+                    current_parameters = np.append(parameters[epoch], constants)
+
                 # Evaluating the objective function that will count as "official" one for this epoch
-                outputs[epoch] = self.objective_function(np.append(parameters[epoch], constants))
+                outputs[epoch] = self.objective_function(current_parameters)
 
                 # Objective function is evaluated for random parameters because we need it to calculate partial derivatives
                 for parameter in range(n_parameters):
@@ -115,7 +123,7 @@ class DifferenceGradientDescent():
                         if constants is not None:
                             current_parameters = np.append(current_parameters, constants)
 
-                        difference_objective[parameter] = self.objective_function(current_parameters, constants)[0]
+                        difference_objective[parameter] = self.objective_function(current_parameters)[0]
                     else:
                         difference_objective[parameter] = outputs[epoch, 0]
 
@@ -123,6 +131,9 @@ class DifferenceGradientDescent():
                 parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         elif threads > 1:
+            if len(parameters) != threads:
+                raise ValueError("Each parameter should have only one CPU thread.")
+
             for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
