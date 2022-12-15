@@ -3,47 +3,54 @@ from difference_gradient_descent import DifferenceGradientDescent
 from schedules import Schedules
 
 
-def foo(params, const):
-    return[(params[0]+2+const[0])**2]
+@pytest.fixture
+def optimizer():
+    def foo(params, const):
+        return[(params[0]+2+const[0])**2]
 
-optimizer = DifferenceGradientDescent(objective_function = foo)
-scheduler = Schedules(n_steps = 10000)
-rates = scheduler.constant(0.01)
-differences = scheduler.constant(0.001)
+    optimizer = DifferenceGradientDescent(objective_function = foo)
 
-def test_one_thread():
+    return optimizer
+
+@pytest.fixture
+def scheduler():
+    scheduler = Schedules(n_steps = 10000)
+
+    return scheduler
+
+def test_one_thread(optimizer, scheduler):
     outputs, parameters = optimizer.difference_gradient_descent(initial_parameters=[5],
-                                                                differences = differences,
-                                                                learning_rates = rates,
+                                                                differences = scheduler.constant(0.001),
+                                                                learning_rates = scheduler.constant(0.01),
                                                                 epochs = 1000,
                                                                 constants = [3])
 
     assert abs(parameters[-1] - (-3)) <= 10**-2
 
-def test_multithread():
+def test_multithread(optimizer, scheduler):
     outputs, parameters = optimizer.difference_gradient_descent(initial_parameters=[5],
-                                                                differences = differences,
-                                                                learning_rates = rates,
+                                                                differences = scheduler.constant(0.001),
+                                                                learning_rates = scheduler.constant(0.01),
                                                                 epochs = 1000,
                                                                 constants = [3],
                                                                 threads = 2)
 
     assert abs(parameters[-1] - (-3)) <= 10**-2
 
-def test_partial_one_thread():
+def test_partial_one_thread(optimizer, scheduler):
     outputs, parameters = optimizer.partial_gradient_descent(initial_parameters=[5],
-                                                             differences = differences,
-                                                             learning_rates = rates,
+                                                             differences = scheduler.constant(0.001),
+                                                             learning_rates = scheduler.constant(0.01),
                                                              epochs = 10000,
                                                              parameters_used = 1,
                                                              constants = [3])
 
     assert abs(parameters[-1] - (-3)) <= 10**-2
 
-def test_partial_multithread():
+def test_partial_multithread(optimizer, scheduler):
     outputs, parameters = optimizer.partial_gradient_descent(initial_parameters=[5],
-                                                             differences = differences,
-                                                             learning_rates = rates,
+                                                             differences = scheduler.constant(0.001),
+                                                             learning_rates = scheduler.constant(0.01),
                                                              epochs = 10000,
                                                              parameters_used = 1,
                                                              constants = [3],
