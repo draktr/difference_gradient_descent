@@ -21,7 +21,7 @@ class DifferenceGradientDescent():
                                     threads = 1):
 
         if epochs != len(learning_rates) or epochs != len(differences) or len(learning_rates) != len(differences):
-            raise ValueError("Number of epochs should be equal to the number of learning rates and differences given")
+            raise ValueError("Number of epochs, learning rates and differences given should be equal.")
 
         n_parameters = len(initial_parameters)
         outputs = np.zeros([epochs, self.n_additional_outputs+1])
@@ -39,7 +39,8 @@ class DifferenceGradientDescent():
                 # Evaluating the objective function that will count as "official" one for this epoch
                 outputs[epoch] = self.objective_function(current_parameters)
 
-                # Objective function is evaluated for every (differentiated) parameter because we need it to calculate partial derivatives
+                # Objective function is evaluated for every (differentiated) parameter
+                # because we need it to calculate partial derivatives
                 for parameter in range(n_parameters):
                     current_parameters = parameters[epoch]
                     current_parameters[parameter] = current_parameters[parameter] + difference
@@ -53,14 +54,14 @@ class DifferenceGradientDescent():
                 parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         elif threads > 1:
-            if len(parameters) != threads:
-                raise ValueError("Each parameter should have only one CPU thread.")
+            if len(parameters[0]) + 1 != threads:
+                raise ValueError("Each parameter should have only one CPU thread, along with one for the base evaluation.")
 
             for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 # One set of parameters is needed for each partial derivative, and one is needed for the base case
                 current_parameters = np.zeros([n_parameters + 1, n_parameters])
                 current_parameters[0] = parameters[epoch]
-                for parameter in range(n_parameters + 1):
+                for parameter in range(n_parameters):
                     current_parameters[parameter + 1] = parameters[epoch]
                     current_parameters[parameter + 1, parameter] = current_parameters[0, parameter] + difference
 
@@ -94,7 +95,7 @@ class DifferenceGradientDescent():
                                  rng_seed = 88):
 
         if epochs != len(learning_rates) or epochs != len(differences) or len(learning_rates) != len(differences):
-            raise ValueError("Number of epochs should be equal to the number of learning rates and differences given")
+            raise ValueError("Number of epochs, learning rates and differences given should be equal.")
 
         n_parameters = len(initial_parameters)
         outputs = np.zeros([epochs, self.n_additional_outputs+1])
@@ -114,7 +115,8 @@ class DifferenceGradientDescent():
                 # Evaluating the objective function that will count as "official" one for this epoch
                 outputs[epoch] = self.objective_function(current_parameters)
 
-                # Objective function is evaluated for random parameters because we need it to calculate partial derivatives
+                # Objective function is evaluated only for random parameters because we need it
+                # to calculate partial derivatives, while limiting computational expense
                 for parameter in range(n_parameters):
                     if parameter in param_idx:
                         current_parameters = parameters[epoch]
@@ -125,23 +127,28 @@ class DifferenceGradientDescent():
 
                         difference_objective[parameter] = self.objective_function(current_parameters)[0]
                     else:
+                        # Difference objective value is still recorded (as base evaluation value)
+                        # for non-differenced parameters (in current epoch) for consistency and convenience
                         difference_objective[parameter] = outputs[epoch, 0]
 
                 # These parameters will be used for the evaluation in the next epoch
                 parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
 
         elif threads > 1:
-            if len(parameters) != threads:
-                raise ValueError("Each parameter should have only one CPU thread.")
+            if parameters_used + 1 != threads:
+                raise ValueError("Each parameter should have only one CPU thread, along with one for the base evaluation.")
 
             for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
-                current_parameters = np.zeros([n_parameters, n_parameters])
-                for parameter in range(n_parameters):
-                    current_parameters[parameter] = parameters[epoch]
+                # Objective function is evaluated only for random parameters because we need it
+                # to calculate partial derivatives, while limiting computational expense
+                current_parameters = np.zeros([parameters_used + 1, n_parameters])
+                current_parameters[0] = parameters[epoch]
+                for parameter in range(parameters_used):
+                    current_parameters[parameter + 1] = parameters[epoch]
                     if parameter in param_idx:
-                        current_parameters[parameter, parameter] = current_parameters[parameter, parameter] + difference
+                        current_parameters[parameter + 1, parameter] = current_parameters[0, parameter] + difference
 
                 if constants is not None:
                     current_parameters = np.concatenate([current_parameters,
@@ -150,6 +157,10 @@ class DifferenceGradientDescent():
 
                 parallel_outputs = Parallel(n_jobs=threads)(delayed(self.objective_function)(i) for i in current_parameters)
 
+                # This objective function evaluation will be used as the "official" one for this epoch
+                outputs[epoch] = parallel_outputs[0]
+                # Difference objective value is still recorded (as base evaluation value)
+                # for non-differenced parameters (in current epoch) for consistency and convenience
                 difference_objective = np.full(n_parameters, parallel_outputs[0][0])
                 difference_objective[param_idx] = np.array([parallel_outputs[i][0] for i in range(1, parameters_used + 1)])
 
