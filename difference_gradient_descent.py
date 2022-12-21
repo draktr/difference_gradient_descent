@@ -38,6 +38,106 @@ class DifferenceGradientDescent():
 
         self.objective_function = objective_function
 
+    def _set_up_variables(self,
+                          epochs,
+                          learning_rates,
+                          differences,
+                          initial_parameters,
+                          constants):
+        """
+        Sets up variables and data structures for algorithm.
+
+        :param epochs: Number of epochs
+        :type epochs: int
+        :param learning_rates: Sequence of learning rates, one for each epoch
+        :type learning_rates: ndarray
+        :param differences: Sequence of difference values, one for each epoch.
+        :type differences: ndarray
+        :param initial_parameters: Starting parameter values for the algorithm
+        :type initial_parameters: list
+        :param constants: Constants values required for the evaluation of the objective function
+                          that aren't adjusted in the process of gradient descent, defaults to None
+        :type constants: list, optional
+        :raises ValueError: If the number of epochs, learning rates and differences do not match
+        :return: Number of parameters, outputs array, parameters array, difference objective array, change variable
+        :rtype: int, ndarray, ndarray, ndarray, float
+        """
+
+        if epochs != len(learning_rates) or epochs != len(differences) or len(learning_rates) != len(differences):
+            raise ValueError("Number of epochs, learning rates and differences given should be equal.")
+
+        n_parameters = len(initial_parameters)
+        if constants is None:
+            n_outputs = len(self.objective_function(initial_parameters))
+        else:
+            n_outputs = len(self.objective_function(np.append(initial_parameters, constants)))
+        outputs = np.zeros([epochs, n_outputs])
+        parameters = np.zeros([epochs + 1, n_parameters])
+        parameters[0] = initial_parameters
+        difference_objective = np.zeros(n_parameters)
+        change = 0.0
+
+        return n_parameters, outputs, parameters, difference_objective, change
+
+    def _check_constants(self,
+                         constants,
+                         parameters,
+                         epoch):
+        """
+        Checks if objective function requires constants in which case it appends
+        it to the parameters array for passing to the obejctive function for evaluation.
+
+        :param constants: Constants values required for the evaluation of the objective function
+                          that aren't adjusted in the process of gradient descent, defaults to None
+        :type constants: list, optional
+        :param parameters: Parameters of the objective function that are being optimized
+        :type parameters: ndarray
+        :param epoch: Current epoch
+        :type epoch: int
+        :return: Current parameters array containig all the neccesary inputs of the objective function
+        :rtype: ndarray
+        """
+
+        if constants is None:
+            current_parameters = parameters[epoch]
+        else:
+            current_parameters = np.append(parameters[epoch], constants)
+
+        return current_parameters
+
+    def _set_difference_objective(self,
+                                  parameters,
+                                  epoch,
+                                  parameter,
+                                  difference,
+                                  constants):
+        """
+        Does neccesary operations for computation of the difference objective
+        for a particular parameter and computes the difference objective value.
+
+        :param parameters: Parameters of the objective function that are being optimized
+        :type parameters: ndarray
+        :param epoch: Current epoch
+        :type epoch: int
+        :param parameter: Current parameter
+        :type parameter: int
+        :param difference: Current value for the difference
+        :type difference: float
+        :param constants: Constants values required for the evaluation of the objective function
+                          that aren't adjusted in the process of gradient descent, defaults to None
+        :type constants: list, optional
+        :return: Difference objective value for the particular parameter
+        :rtype: float
+        """
+
+        current_parameters = parameters[epoch]
+        current_parameters[parameter] = current_parameters[parameter] + difference
+        if constants is not None:
+            current_parameters = np.append(current_parameters, constants)
+        parameter_objective = self.objective_function(current_parameters)[0]
+
+        return parameter_objective
+
     def _update(self,
                 rate,
                 difference_objective,
@@ -47,11 +147,33 @@ class DifferenceGradientDescent():
                 change,
                 epoch,
                 parameters):
+        """
+        Updates parameter values by performing the gradient descent operation.
 
-            change = rate * (difference_objective - outputs[epoch, 0]) / difference + momentum * change
-            parameters = parameters[epoch] - change
+        :param rate: Current learning rate
+        :type rate: float
+        :param difference_objective: Difference objective values array
+        :type difference_objective: ndarray
+        :param outputs: Objective function outputs
+        :type outputs: ndarray
+        :param difference: Current difference
+        :type difference: float
+        :param momentum: Momentum value
+        :type momentum: float
+        :param change: Current change value
+        :type change: float
+        :param epoch: Current epoch
+        :type epoch: int
+        :param parameters: Parameters array of all parameters for all epochs
+        :type parameters: ndarray
+        :return: Updated parameter values
+        :rtype: ndarray
+        """
 
-            return parameters
+        change = rate * (difference_objective - outputs[epoch, 0]) / difference + momentum * change
+        parameters = parameters[epoch] - change
+
+        return parameters
 
     def difference_gradient_descent(self,
                                     initial_parameters,
@@ -59,7 +181,7 @@ class DifferenceGradientDescent():
                                     learning_rates,
                                     epochs,
                                     constants = None,
-                                    momentum = 0,
+                                    momentum = 0.0,
                                     threads = 1):
         """
         Performs Gradient Descent Algorithm by using difference instead of infinitesimal differential.
@@ -76,35 +198,25 @@ class DifferenceGradientDescent():
         :param constants: Constants values required for the evaluation of the objective function
                           that aren't adjusted in the process of gradient descent, defaults to None
         :type constants: list, optional
+        :param momentum: Momentum turn for stabilizing the rate of learning when moving towards the global optimum, defaults to 0.0
+        :type momentum: float, optional
         :param threads: Number of CPU threads used for computation, defaults to 1
         :type threads: int, optional
-        :raises ValueError: If the number of epochs, learning rates and differences do not match
         :raises ValueError: If the number of threads specified doesn't match the number of processes
         :raises ValueError: If negative value of threads is given
         :return: Objective function outputs and parameters for each epoch
         :rtype: ndarray
         """
 
-        if epochs != len(learning_rates) or epochs != len(differences) or len(learning_rates) != len(differences):
-            raise ValueError("Number of epochs, learning rates and differences given should be equal.")
-
-        n_parameters = len(initial_parameters)
-        if constants is None:
-            n_outputs = len(self.objective_function(initial_parameters))
-        else:
-            n_outputs = len(self.objective_function(np.append(initial_parameters, constants)))
-        outputs = np.zeros([epochs, n_outputs])
-        parameters = np.zeros([epochs + 1, n_parameters])
-        parameters[0] = initial_parameters
-        difference_objective = np.zeros(n_parameters)
-        change = 0
+        n_parameters, outputs, parameters, difference_objective, change = self._set_up_variables(epochs,
+                                                                                                 learning_rates,
+                                                                                                 differences,
+                                                                                                 initial_parameters,
+                                                                                                 constants)
 
         if threads == 1:
             for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
-                if constants is None:
-                    current_parameters = parameters[epoch]
-                else:
-                    current_parameters = np.append(parameters[epoch], constants)
+                current_parameters = self._check_constants(constants, parameters, epoch)
 
                 # Evaluating the objective function that will count as "official" one for this epoch
                 outputs[epoch] = self.objective_function(current_parameters)
@@ -112,13 +224,11 @@ class DifferenceGradientDescent():
                 # Objective function is evaluated for every (differentiated) parameter
                 # because we need it to calculate partial derivatives
                 for parameter in range(n_parameters):
-                    current_parameters = parameters[epoch]
-                    current_parameters[parameter] = current_parameters[parameter] + difference
-
-                    if constants is not None:
-                        current_parameters = np.append(current_parameters, constants)
-
-                    difference_objective[parameter] = self.objective_function(current_parameters)[0]
+                    difference_objective[parameter] = self._set_difference_objective(parameters,
+                                                                                     epoch,
+                                                                                     parameter,
+                                                                                     difference,
+                                                                                     constants)
 
                 # These parameters will be used for the evaluation in the next epoch
                 parameters[epoch+1] = self._update(rate, difference_objective, outputs, difference, momentum, change, epoch, parameters)
@@ -161,7 +271,7 @@ class DifferenceGradientDescent():
                                  epochs,
                                  parameters_used,
                                  constants = None,
-                                 momentum = 0,
+                                 momentum = 0.0,
                                  threads = 1,
                                  rng_seed = 88):
         """
@@ -183,40 +293,30 @@ class DifferenceGradientDescent():
         :param constants: Constants values required for the evaluation of the objective function
                           that aren't adjusted in the process of gradient descent, defaults to None
         :type constants: list, optional
+        :param momentum: Momentum turn for stabilizing the rate of learning when moving towards the global optimum, defaults to 0.0
+        :type momentum: float, optional
         :param threads: Number of CPU threads used for computation, defaults to 1
         :type threads: int, optional
         :param rng_seed: Seed for the random number generator used for determining which parameters
                          are used in each epoch for computation of gradients, defaults to 88
         :type rng_seed: int, optional
-        :raises ValueError: If the number of epochs, learning rates and differences do not match
         :raises ValueError: If the number of threads specified doesn't match the number of processes
         :raises ValueError: If negative value of threads is given
         :return: Objective function outputs and parameters for each epoch
         :rtype: ndarray
         """
 
-        if epochs != len(learning_rates) or epochs != len(differences) or len(learning_rates) != len(differences):
-            raise ValueError("Number of epochs, learning rates and differences given should be equal.")
-
-        n_parameters = len(initial_parameters)
-        if constants is None:
-            n_outputs = len(self.objective_function(initial_parameters))
-        else:
-            n_outputs = len(self.objective_function(np.append(initial_parameters, constants)))
-        outputs = np.zeros([epochs, n_outputs])
-        parameters = np.zeros([epochs + 1, n_parameters])
-        parameters[0] = initial_parameters
-        difference_objective = np.zeros(n_parameters)
+        n_parameters, outputs, parameters, difference_objective, change = self._set_up_variables(epochs,
+                                                                                                 learning_rates,
+                                                                                                 differences,
+                                                                                                 initial_parameters,
+                                                                                                 constants)
         rng = np.random.default_rng(rng_seed)
-        change = 0
 
         if threads == 1:
             for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
-                if constants is None:
-                    current_parameters = parameters[epoch]
-                else:
-                    current_parameters = np.append(parameters[epoch], constants)
+                current_parameters = self._check_constants(constants, parameters, epoch)
 
                 # Evaluating the objective function that will count as "official" one for this epoch
                 outputs[epoch] = self.objective_function(current_parameters)
@@ -225,13 +325,11 @@ class DifferenceGradientDescent():
                 # to calculate partial derivatives, while limiting computational expense
                 for parameter in range(n_parameters):
                     if parameter in param_idx:
-                        current_parameters = parameters[epoch]
-                        current_parameters[parameter] = current_parameters[parameter] + difference
-
-                        if constants is not None:
-                            current_parameters = np.append(current_parameters, constants)
-
-                        difference_objective[parameter] = self.objective_function(current_parameters)[0]
+                        difference_objective[parameter] = self._set_difference_objective(parameters,
+                                                                                         epoch,
+                                                                                         parameter,
+                                                                                         difference,
+                                                                                         constants)
                     else:
                         # Difference objective value is still recorded (as base evaluation value)
                         # for non-differenced parameters (in current epoch) for consistency and convenience
