@@ -14,7 +14,6 @@ as well as parallel computing for performance benefits.
 
 import numpy as np
 import pandas as pd
-from inspect import signature
 from joblib import Parallel, delayed
 
 
@@ -39,12 +38,28 @@ class DifferenceGradientDescent():
 
         self.objective_function = objective_function
 
+    def _update(self,
+                rate,
+                difference_objective,
+                outputs,
+                difference,
+                momentum,
+                change,
+                epoch,
+                parameters):
+
+            change = rate * (difference_objective - outputs[epoch, 0]) / difference + momentum * change
+            parameters = parameters[epoch] - change
+
+            return parameters
+
     def difference_gradient_descent(self,
                                     initial_parameters,
                                     differences,
                                     learning_rates,
                                     epochs,
                                     constants = None,
+                                    momentum = 0,
                                     threads = 1):
         """
         Performs Gradient Descent Algorithm by using difference instead of infinitesimal differential.
@@ -82,6 +97,7 @@ class DifferenceGradientDescent():
         parameters = np.zeros([epochs + 1, n_parameters])
         parameters[0] = initial_parameters
         difference_objective = np.zeros(n_parameters)
+        change = 0
 
         if threads == 1:
             for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
@@ -105,7 +121,7 @@ class DifferenceGradientDescent():
                     difference_objective[parameter] = self.objective_function(current_parameters)[0]
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
+                parameters[epoch+1] = self._update(rate, difference_objective, outputs, difference, momentum, change, epoch, parameters)
 
         elif threads > 1:
             if len(parameters[0]) + 1 != threads:
@@ -131,7 +147,7 @@ class DifferenceGradientDescent():
                 difference_objective = np.array([parallel_outputs[i][0] for i in range(1, n_parameters+1)])
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
+                parameters[epoch+1] = self._update(rate, difference_objective, outputs, difference, momentum, change, epoch, parameters)
 
         else:
             raise ValueError("Number of threads should be positive.")
@@ -145,6 +161,7 @@ class DifferenceGradientDescent():
                                  epochs,
                                  parameters_used,
                                  constants = None,
+                                 momentum = 0,
                                  threads = 1,
                                  rng_seed = 88):
         """
@@ -191,6 +208,7 @@ class DifferenceGradientDescent():
         parameters[0] = initial_parameters
         difference_objective = np.zeros(n_parameters)
         rng = np.random.default_rng(rng_seed)
+        change = 0
 
         if threads == 1:
             for epoch, rate, difference in zip(range(epochs), learning_rates, differences):
@@ -220,7 +238,7 @@ class DifferenceGradientDescent():
                         difference_objective[parameter] = outputs[epoch, 0]
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
+                parameters[epoch+1] = self._update(rate, difference_objective, outputs, difference, momentum, change, epoch, parameters)
 
         elif threads > 1:
             if parameters_used + 1 != threads:
@@ -253,7 +271,7 @@ class DifferenceGradientDescent():
                 difference_objective[param_idx] = np.array([parallel_outputs[i][0] for i in range(1, parameters_used + 1)])
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch+1] = parameters[epoch] - rate * (difference_objective - outputs[epoch, 0]) / difference
+                parameters[epoch+1] = self._update(rate, difference_objective, outputs, difference, momentum, change, epoch, parameters)
 
         else:
             raise ValueError("Number of threads should be positive.")
