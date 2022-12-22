@@ -279,7 +279,6 @@ class DifferenceGradientDescent():
         in each epoch and by using difference instead of infinitesimal differential. Allows for the application of the algorithm
         on the non-differentiable functions and decreases computational expense.
 
-
         :param initial_parameters: Starting parameter values for the algorithm
         :type initial_parameters: list
         :param differences: Sequence of difference values, one for each epoch.
@@ -373,6 +372,74 @@ class DifferenceGradientDescent():
 
         else:
             raise ValueError("Number of threads should be positive.")
+
+        return outputs, parameters
+
+    def partially_partial_gradient_descent(self,
+                                           initial_parameters,
+                                           differences,
+                                           learning_rates,
+                                           partial_epochs,
+                                           total_epochs,
+                                           parameters_used,
+                                           constants = None,
+                                           momentum = 0.0,
+                                           threads = 1,
+                                           rng_seed = 88):
+        """
+        Performs Partial Gradient Descent Algorithm for the first `partial_epochs` epochs and
+        regular Difference Gradient Descent for the rest of the epochs (i.e. `total_epochs`-`partial_epochs`).
+
+        :param initial_parameters: Starting parameter values for the algorithm
+        :type initial_parameters: list
+        :param differences: Sequence of difference values, one for each epoch.
+        :type differences: ndarray
+        :param learning_rates: Sequence of learning rates, one for each epoch
+        :type learning_rates: ndarray
+        :param partial_epochs: Number of epochs for Partial Gradient Descent
+        :type partial_epochs: int
+        :param total_epochs: Total number of epochs including both for partial and regular algorithms.
+                             Implies that the number of epochs for the regular algorithm is given as
+                             `total_epochs`-`partial_epochs`
+        :type total_epochs: int
+        :param parameters_used: Number of parameters used in each epoch for computation of gradients
+        :type parameters_used: int
+        :param constants: Constants values required for the evaluation of the objective function
+                          that aren't adjusted in the process of gradient descent, defaults to None
+        :type constants: list, optional
+        :param momentum: Momentum turn for stabilizing the rate of learning when moving towards the global optimum, defaults to 0.0
+        :type momentum: float, optional
+        :param threads: Number of CPU threads used for computation, defaults to 1
+        :type threads: int, optional
+        :param rng_seed: Seed for the random number generator used for determining which parameters
+                         are used in each epoch for computation of gradients, defaults to 88
+        :type rng_seed: int, optional
+        :return: Objective function outputs and parameters for each epoch
+        :rtype: ndarray
+        """
+
+        outputs_p, parameters_p = self.partial_gradient_descent(initial_parameters,
+                                                                differences[:partial_epochs],
+                                                                learning_rates[:partial_epochs],
+                                                                partial_epochs,
+                                                                parameters_used,
+                                                                constants,
+                                                                momentum,
+                                                                threads,
+                                                                rng_seed)
+
+        outputs_r, parameters_r = self.difference_gradient_descent(initial_parameters = parameters_p[-1],
+                                                                   differences = differences[partial_epochs:],
+                                                                   learning_rates = learning_rates[partial_epochs:],
+                                                                   epochs = (total_epochs-partial_epochs),
+                                                                   constants = constants,
+                                                                   momentum = momentum,
+                                                                   threads = threads)
+
+        outputs = np.append(outputs_p, outputs_r)
+        parameters = np.append(parameters_p, parameters_r)
+        outputs = np.reshape(outputs, newshape=[-1, 1])
+        parameters = np.reshape(parameters, newshape=[-1, 1])
 
         return outputs, parameters
 
