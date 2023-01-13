@@ -127,12 +127,12 @@ class Schedules():
         if cycle is True:
             n_steps = np.multiply(self.n_steps, np.ceil(np.divide(self.steps, self.n_steps)))
             sequence = np.multiply((initial_value - end_value),
-                                         (1 - np.power(np.divide(self.steps, n_steps), (power))
+                                         (np.power(1 - np.divide(self.steps, n_steps), power)
                                          )) + end_value
         else:
             steps = np.minimum(self.steps, self.n_steps)
             sequence = np.multiply((initial_value - end_value),
-                                         (1 - np.power(np.divide(steps, self.n_steps), (power))
+                                         (np.power(1 - np.divide(steps, self.n_steps), power)
                                          )) + end_value
 
         return sequence
