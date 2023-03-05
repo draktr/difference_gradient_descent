@@ -6,70 +6,86 @@ from schedules import Schedules
 @pytest.fixture
 def optimizer():
     def foo(params):
-        return [(params[0]+2)**2+(params[1]+3)**2+(params[2]+1)**2, params[0]+params[1]+params[2]]
+        return [
+            (params[0] + 2) ** 2 + (params[1] + 3) ** 2 + (params[2] + 1) ** 2,
+            params[0] + params[1] + params[2],
+        ]
 
-    optimizer = DifferenceGradientDescent(objective_function = foo)
+    optimizer = DifferenceGradientDescent(objective_function=foo)
 
     return optimizer
 
+
 @pytest.fixture
 def scheduler():
-    scheduler = Schedules(n_steps = 1000)
+    scheduler = Schedules(n_steps=1000)
 
     return scheduler
+
 
 @pytest.fixture
 def differences(scheduler):
 
-    differences = scheduler.exponential_decay(initial_value=0.01,
-                                              decay_rate=0.0005)
+    differences = scheduler.exponential_decay(initial_value=0.01, decay_rate=0.0005)
 
     return differences
+
 
 @pytest.fixture
 def rates(scheduler):
 
-    rates = scheduler.exponential_decay(initial_value=0.01,
-                                        decay_rate=0.5)
+    rates = scheduler.exponential_decay(initial_value=0.01, decay_rate=0.5)
 
     return rates
 
+
 def test_one_thread(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(initial_parameters=[5, 5, 5],
-                                                                differences = differences,
-                                                                learning_rates = rates,
-                                                                epochs = 1000)
+    outputs, parameters = optimizer.difference_gradient_descent(
+        initial_parameters=[5, 5, 5],
+        differences=differences,
+        learning_rates=rates,
+        epochs=1000,
+    )
 
     assert outputs[-1][0] <= 0.1
     assert abs(outputs[-1][1] - (-6)) <= 10**-1
+
 
 def test_multithread(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(initial_parameters=[5, 5, 5],
-                                                                differences = differences,
-                                                                learning_rates = rates,
-                                                                epochs = 1000,
-                                                                threads = 4)
+    outputs, parameters = optimizer.difference_gradient_descent(
+        initial_parameters=[5, 5, 5],
+        differences=differences,
+        learning_rates=rates,
+        epochs=1000,
+        threads=4,
+    )
 
     assert outputs[-1][0] <= 0.1
     assert abs(outputs[-1][1] - (-6)) <= 10**-1
+
 
 def test_partial_one_thread(optimizer, differences, rates):
-    outputs, parameters = optimizer.partial_gradient_descent(initial_parameters=[5, 5, 5],
-                                                             differences = differences,
-                                                             learning_rates = rates,
-                                                             epochs = 1000,
-                                                             parameters_used = 1)
+    outputs, parameters = optimizer.partial_gradient_descent(
+        initial_parameters=[5, 5, 5],
+        differences=differences,
+        learning_rates=rates,
+        epochs=1000,
+        parameters_used=1,
+    )
 
     assert outputs[-1][0] <= 0.1
     assert abs(outputs[-1][1] - (-6)) <= 10**-1
 
+
 def test_partial_multithread(optimizer, differences, rates):
-    outputs, parameters = optimizer.partial_gradient_descent(initial_parameters=[5, 5, 5],
-                                                             differences = differences,
-                                                             learning_rates = rates,
-                                                             epochs = 1000,
-                                                             parameters_used = 2,
-                                                             threads = 3)
+    outputs, parameters = optimizer.partial_gradient_descent(
+        initial_parameters=[5, 5, 5],
+        differences=differences,
+        learning_rates=rates,
+        epochs=1000,
+        parameters_used=2,
+        threads=3,
+    )
 
     assert outputs[-1][0] <= 0.1
     assert abs(outputs[-1][1] - (-6)) <= 10**-1
