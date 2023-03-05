@@ -69,3 +69,14 @@ def test_partial_multithread(optimizer, differences, rates):
                                                              threads = 2)
 
     assert outputs[-1] <= 0.1
+
+def test_partially_partial_one_thread(optimizer, differences, rates):
+    outputs, parameters = optimizer.partially_partial_gradient_descent(initial_parameters=[5],
+                                                                       differences = differences,
+                                                                       learning_rates = rates,
+                                                                       partial_epochs = 300,
+                                                                       total_epochs = 1000,
+                                                                       parameters_used = 1,
+                                                                       threads = 2)
+
+    assert outputs[-1] <= 0.1
