@@ -18,18 +18,13 @@ from joblib import Parallel, delayed
 
 
 class DifferenceGradientDescent:
-    """
-    DifferenceGradientDescent class.
-
-    Instance variables:
-
-    - ``objective_function`` - function
-    - ``n_additional_steps`` - int
-    """
-
     def __init__(self, objective_function):
         """
         Initializes DifferenceGradientDescent optimizer.
+
+        Object properties:
+
+        - ``objective_function`` - function to be optimized
 
         :param objective_function: Objective function to minimize
         :type objective_function: Function
@@ -50,10 +45,10 @@ class DifferenceGradientDescent:
     ):
 
         change = (
-            rate * (difference_objective - outputs[epoch, 0]) / difference
-            + momentum * change
+            momentum * change
+            - rate * (difference_objective - outputs[epoch, 0]) / difference
         )
-        parameters = parameters[epoch] - change
+        parameters = parameters[epoch] + change  # TODO: parameters check
 
         return parameters
 
