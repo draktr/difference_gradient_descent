@@ -5,8 +5,9 @@ from optschedule import Schedule
 
 @pytest.fixture
 def optimizer():
-    def foo(inputs):
-        return [(inputs[0] + 2 + inputs[1]) ** 2]
+    def foo(inputs, permission):
+        if permission:
+            return [(inputs[0] + 2 + inputs[1]) ** 2]
 
     optimizer = DifferenceGradientDescent(objective_function=foo)
 
@@ -39,11 +40,11 @@ def rates(scheduler):
 def test_one_thread(optimizer, differences, rates):
 
     outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=[5],
+        initial_parameters=[5, 5],
         differences=differences,
         learning_rates=rates,
         epochs=1000,
-        constants=[3],
+        permission=[3],
     )
 
     assert outputs[-1] <= 0.1
@@ -52,12 +53,12 @@ def test_one_thread(optimizer, differences, rates):
 def test_multithread(optimizer, differences, rates):
 
     outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=[5],
+        initial_parameters=[5, 5],
         differences=differences,
         learning_rates=rates,
         epochs=1000,
-        constants=[3],
-        threads=2,
+        threads=3,
+        permission=[3],
     )
 
     assert outputs[-1] <= 0.1
@@ -66,12 +67,12 @@ def test_multithread(optimizer, differences, rates):
 def test_partial_one_thread(optimizer, differences, rates):
 
     outputs, parameters = optimizer.partial_gradient_descent(
-        initial_parameters=[5],
+        initial_parameters=[5, 5],
         differences=differences,
         learning_rates=rates,
         epochs=1000,
         parameters_used=1,
-        constants=[3],
+        permission=[3],
     )
 
     assert outputs[-1] <= 0.1
@@ -80,13 +81,13 @@ def test_partial_one_thread(optimizer, differences, rates):
 def test_partial_multithread(optimizer, differences, rates):
 
     outputs, parameters = optimizer.partial_gradient_descent(
-        initial_parameters=[5],
+        initial_parameters=[5, 5],
         differences=differences,
         learning_rates=rates,
         epochs=1000,
         parameters_used=1,
-        constants=[3],
         threads=2,
+        permission=[3],
     )
 
     assert outputs[-1] <= 0.1

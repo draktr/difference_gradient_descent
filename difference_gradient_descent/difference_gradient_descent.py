@@ -48,9 +48,9 @@ class DifferenceGradientDescent:
             momentum * change
             - rate * (difference_objective - outputs[epoch, 0]) / difference
         )
-        parameters = parameters[epoch] + change  # TODO: parameters check
+        updated_parameters = parameters[epoch] + change
 
-        return parameters
+        return updated_parameters
 
     def difference_gradient_descent(
         self,
@@ -58,9 +58,9 @@ class DifferenceGradientDescent:
         differences,
         learning_rates,
         epochs,
-        constants=None,
         momentum=0,
         threads=1,
+        **constants
     ):
         """
         Performs Gradient Descent Algorithm by using difference instead of infinitesimal differential.
@@ -74,9 +74,6 @@ class DifferenceGradientDescent:
         :type learning_rates: ndarray
         :param epochs: Number of epochs
         :type epochs: int
-        :param constants: Constants values required for the evaluation of the objective function
-                          that aren't adjusted in the process of gradient descent, defaults to None
-        :type constants: list, optional
         :param threads: Number of CPU threads used for computation, defaults to 1
         :type threads: int, optional
         :raises ValueError: If the number of epochs, learning rates and differences do not match
@@ -96,12 +93,7 @@ class DifferenceGradientDescent:
             )
 
         n_parameters = len(initial_parameters)
-        if constants is None:
-            n_outputs = len(self.objective_function(initial_parameters))
-        else:
-            n_outputs = len(
-                self.objective_function(np.append(initial_parameters, constants))
-            )
+        n_outputs = len(self.objective_function(initial_parameters, **constants))
         outputs = np.zeros([epochs, n_outputs])
         parameters = np.zeros([epochs + 1, n_parameters])
         parameters[0] = initial_parameters
@@ -112,13 +104,9 @@ class DifferenceGradientDescent:
             for epoch, rate, difference in zip(
                 range(epochs), learning_rates, differences
             ):
-                if constants is None:
-                    current_parameters = parameters[epoch]
-                else:
-                    current_parameters = np.append(parameters[epoch], constants)
 
                 # Evaluating the objective function that will count as "official" one for this epoch
-                outputs[epoch] = self.objective_function(current_parameters)
+                outputs[epoch] = self.objective_function(parameters[epoch], **constants)
 
                 # Objective function is evaluated for every (differentiated) parameter
                 # because we need it to calculate partial derivatives
@@ -128,11 +116,8 @@ class DifferenceGradientDescent:
                         current_parameters[parameter] + difference
                     )
 
-                    if constants is not None:
-                        current_parameters = np.append(current_parameters, constants)
-
                     difference_objective[parameter] = self.objective_function(
-                        current_parameters
+                        current_parameters, **constants
                     )[0]
 
                 # These parameters will be used for the evaluation in the next epoch
@@ -165,17 +150,9 @@ class DifferenceGradientDescent:
                         current_parameters[0, parameter] + difference
                     )
 
-                if constants is not None:
-                    current_parameters = np.concatenate(
-                        [
-                            current_parameters,
-                            np.full((n_parameters + 1, len(constants)), constants),
-                        ],
-                        axis=1,
-                    )
-
                 parallel_outputs = Parallel(n_jobs=threads)(
-                    delayed(self.objective_function)(i) for i in current_parameters
+                    delayed(self.objective_function)(i, **constants)
+                    for i in current_parameters
                 )
 
                 # This objective function evaluation will be used as the "official" one for this epoch
@@ -208,10 +185,10 @@ class DifferenceGradientDescent:
         learning_rates,
         epochs,
         parameters_used,
-        constants=None,
         momentum=0,
         threads=1,
         rng_seed=88,
+        **constants
     ):
         """
         Performs Gradient Descent Algorithm by computing gradients on only specified number of randomly selected parameters
@@ -228,9 +205,6 @@ class DifferenceGradientDescent:
         :type epochs: int
         :param parameters_used: Number of parameters used in each epoch for computation of gradients
         :type parameters_used: int
-        :param constants: Constants values required for the evaluation of the objective function
-                          that aren't adjusted in the process of gradient descent, defaults to None
-        :type constants: list, optional
         :param threads: Number of CPU threads used for computation, defaults to 1
         :type threads: int, optional
         :param rng_seed: Seed for the random number generator used for determining which parameters
@@ -253,12 +227,7 @@ class DifferenceGradientDescent:
             )
 
         n_parameters = len(initial_parameters)
-        if constants is None:
-            n_outputs = len(self.objective_function(initial_parameters))
-        else:
-            n_outputs = len(
-                self.objective_function(np.append(initial_parameters, constants))
-            )
+        n_outputs = len(self.objective_function(initial_parameters, **constants))
         outputs = np.zeros([epochs, n_outputs])
         parameters = np.zeros([epochs + 1, n_parameters])
         parameters[0] = initial_parameters
@@ -271,13 +240,9 @@ class DifferenceGradientDescent:
                 range(epochs), learning_rates, differences
             ):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
-                if constants is None:
-                    current_parameters = parameters[epoch]
-                else:
-                    current_parameters = np.append(parameters[epoch], constants)
 
                 # Evaluating the objective function that will count as "official" one for this epoch
-                outputs[epoch] = self.objective_function(current_parameters)
+                outputs[epoch] = self.objective_function(parameters[epoch], **constants)
 
                 # Objective function is evaluated only for random parameters because we need it
                 # to calculate partial derivatives, while limiting computational expense
@@ -288,13 +253,8 @@ class DifferenceGradientDescent:
                             current_parameters[parameter] + difference
                         )
 
-                        if constants is not None:
-                            current_parameters = np.append(
-                                current_parameters, constants
-                            )
-
                         difference_objective[parameter] = self.objective_function(
-                            current_parameters
+                            current_parameters, **constants
                         )[0]
                     else:
                         # Difference objective value is still recorded (as base evaluation value)
@@ -335,17 +295,9 @@ class DifferenceGradientDescent:
                             current_parameters[0, parameter] + difference
                         )
 
-                if constants is not None:
-                    current_parameters = np.concatenate(
-                        [
-                            current_parameters,
-                            np.full((n_parameters + 1, len(constants)), constants),
-                        ],
-                        axis=1,
-                    )
-
                 parallel_outputs = Parallel(n_jobs=threads)(
-                    delayed(self.objective_function)(i) for i in current_parameters
+                    delayed(self.objective_function)(i, **constants)
+                    for i in current_parameters
                 )
 
                 # This objective function evaluation will be used as the "official" one for this epoch
@@ -382,10 +334,10 @@ class DifferenceGradientDescent:
         partial_epochs,
         total_epochs,
         parameters_used,
-        constants=None,
         momentum=0.0,
         threads=1,
         rng_seed=88,
+        **constants
     ):
         """
         Performs Partial Gradient Descent Algorithm for the first `partial_epochs` epochs and
@@ -425,10 +377,10 @@ class DifferenceGradientDescent:
             learning_rates[:partial_epochs],
             partial_epochs,
             parameters_used,
-            constants,
             momentum,
             threads,
             rng_seed,
+            **constants
         )
 
         outputs_r, parameters_r = self.difference_gradient_descent(
@@ -436,9 +388,9 @@ class DifferenceGradientDescent:
             differences=differences[partial_epochs:],
             learning_rates=learning_rates[partial_epochs:],
             epochs=(total_epochs - partial_epochs),
-            constants=constants,
             momentum=momentum,
             threads=threads,
+            **constants
         )
 
         outputs = np.append(outputs_p, outputs_r)
