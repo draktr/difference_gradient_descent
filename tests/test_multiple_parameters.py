@@ -1,6 +1,6 @@
 import pytest
 from difference_gradient_descent import DifferenceGradientDescent
-from schedules import Schedules
+from optschedule import Schedule
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def optimizer():
 
 @pytest.fixture
 def scheduler():
-    scheduler = Schedules(n_steps=1000)
+    scheduler = Schedule(n_steps=1000)
 
     return scheduler
 
