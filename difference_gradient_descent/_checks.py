@@ -63,7 +63,6 @@ def _check_arguments(
     rng_seed=None,
     partial_epochs=None,
     total_epochs=None,
-    outputs=None,
     parameters=None,
     columns=None,
 ):
@@ -113,8 +112,6 @@ def _check_arguments(
     if total_epochs is not None:
         if total_epochs < 1:
             raise ValueError("Number of total epochs should be a positive integer")
-    if not isinstance(outputs, (np.ndarray, type(None))):
-        raise ValueError("Outputs should be of type `np.ndarray`")
     if not isinstance(parameters, (np.ndarray, type(None))):
         raise ValueError("Parameters should be of type `np.ndarray`")
     if not isinstance(columns, (np.ndarray, list, type(None))):
@@ -123,11 +120,6 @@ def _check_arguments(
         if parameters.shape[1] != columns.shape[0]:
             raise ValueError(
                 "Number of parameter columns in `parameters` array doesn't match the number of column names given in `columns`"
-            )
-    if outputs is not None and columns is not None:
-        if outputs.shape[0] != parameters.shape[0]:
-            raise ValueError(
-                "Number of epochs in `outputs` and `parameters` arrays doesn't match"
             )
 
     return initial_parameters

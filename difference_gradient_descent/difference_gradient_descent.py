@@ -31,6 +31,25 @@ class DifferenceGradientDescent:
         difference_gradient_descent._checks._check_objective(objective_function)
         self.objective_function = objective_function
 
+        self._outputs = None
+        self._parameters = None
+
+    @property
+    def outputs(self):
+        return self._outputs
+
+    @outputs.setter
+    def outputs(self, outputs):
+        self._outputs = outputs
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, parameters):
+        self._parameters = parameters
+
     def _update(
         self,
         rate,
@@ -171,6 +190,9 @@ class DifferenceGradientDescent:
                     epoch,
                     parameters,
                 )
+
+        self.outputs = outputs
+        self.parameters = parameters
 
         return outputs, parameters
 
@@ -322,6 +344,9 @@ class DifferenceGradientDescent:
                     parameters,
                 )
 
+        self.outputs = outputs
+        self.parameters = parameters
+
         return outputs, parameters
 
     def partially_partial_gradient_descent(
@@ -411,17 +436,15 @@ class DifferenceGradientDescent:
         outputs = np.reshape(outputs, newshape=[-1, 1])
         parameters = np.reshape(parameters, newshape=[-1, 1])
 
+        self.outputs = outputs
+        self.parameters = parameters
+
         return outputs, parameters
 
-    def values_out(self, outputs, parameters, columns, **constants):
+    def values_out(self, columns, **constants):
         """
         Produces a Pandas DataFrame of objective function outputs and parameter values for each epoch of the algorithm.
 
-        :param outputs: Objective function outputs in each of the epochs.
-                        Should be ``epochs`` by ``n_outputs`` shaped ndarray
-        :type outputs: ndarray
-        :param parameters: Parameters values in each of the epochs. Should be ``epochs`` by ``n_parameters`` shaped ndarray
-        :type parameters: ndarray
         :param columns: Column names for the DataFrame. Should include names for all the outputs, parameters and constants
         :type columns: ndarray or list
         :return: Dataframe of all the values of inputs and outputs of the objective function for each epoch
@@ -429,22 +452,25 @@ class DifferenceGradientDescent:
         """
 
         difference_gradient_descent._checks._check_arguments(
-            outputs=outputs, parameters=parameters, columns=columns
+            parameters=self.parameters, columns=columns
         )
 
-        inputs = np.concatenate(
-            [
-                parameters,
-                np.full(
-                    (parameters.shape[1], len(constants.values())),
-                    list(constants.values()),
-                ),
-            ],
-            axis=1,
-        )
+        if len(constants.values()) != 0:
+            inputs = np.concatenate(
+                [
+                    self.parameters,
+                    np.full(
+                        (self.parameters.shape[0], len(constants.values())),
+                        list(constants.values()),
+                    ),
+                ],
+                axis=1,
+            )
+        else:
+            inputs = self.parameters
 
         values = pd.DataFrame(
-            [pd.DataFrame(outputs), pd.DataFrame(inputs)], columns=columns
+            [pd.DataFrame(self.outputs), pd.DataFrame(inputs)], columns=columns
         )
 
         return values
