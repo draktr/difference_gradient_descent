@@ -5,7 +5,6 @@ computing gradients. This approach allows for the application of Gradient Descen
 function as long as it can be evaluated. Methods in this class allow for computing only a random subset of gradients,
 as well as parallel computing for performance benefits.
 
-:raises ValueError: If negative value of threads is given
 :return: Objective function outputs and parameters for each epoch
 :rtype: ndarray
 """
@@ -67,16 +66,17 @@ class DifferenceGradientDescent:
         Allows for the application of the algorithm on the non-differentiable functions.
 
         :param initial_parameters: Starting parameter values for the algorithm
-        :type initial_parameters: list
+        :type initial_parameters: int, float, list or ndarray
         :param differences: Sequence of difference values, one for each epoch.
-        :type differences: ndarray
+        :type differences: int, float or ndarray
         :param learning_rates: Sequence of learning rates, one for each epoch
-        :type learning_rates: ndarray
+        :type learning_rates: int, float or ndarray
         :param epochs: Number of epochs
         :type epochs: int
+        :param momentum: Momentum turn for stabilizing the rate of learning when moving towards the global optimum, defaults to 0
+        :type momentum: int or float, optional
         :param threads: Number of CPU threads used for computation, defaults to 1
         :type threads: int, optional
-        :raises ValueError: If negative value of threads is given
         :return: Objective function outputs and parameters for each epoch
         :rtype: ndarray
         """
@@ -87,6 +87,10 @@ class DifferenceGradientDescent:
             epochs,
         ) = difference_gradient_descent._checks._check_iterables(
             differences, learning_rates, epochs
+        )
+
+        initial_parameters = difference_gradient_descent._checks._check_arguments(
+            initial_parameters, momentum, threads
         )
 
         n_parameters = len(initial_parameters)
@@ -168,9 +172,6 @@ class DifferenceGradientDescent:
                     parameters,
                 )
 
-        else:
-            raise ValueError("Number of threads should be positive.")
-
         return outputs, parameters
 
     def partial_gradient_descent(
@@ -191,21 +192,22 @@ class DifferenceGradientDescent:
         on the non-differentiable functions and decreases computational expense.
 
         :param initial_parameters: Starting parameter values for the algorithm
-        :type initial_parameters: list
+        :type initial_parameters: int, float, list or ndarray
         :param differences: Sequence of difference values, one for each epoch.
-        :type differences: ndarray
+        :type differences: int, float or ndarray
         :param learning_rates: Sequence of learning rates, one for each epoch
-        :type learning_rates: ndarray
+        :type learning_rates: int, float or ndarray
         :param epochs: Number of epochs
         :type epochs: int
         :param parameters_used: Number of parameters used in each epoch for computation of gradients
         :type parameters_used: int
+        :param momentum: Momentum turn for stabilizing the rate of learning when moving towards the global optimum, defaults to 0
+        :type momentum: int or float, optional
         :param threads: Number of CPU threads used for computation, defaults to 1
         :type threads: int, optional
         :param rng_seed: Seed for the random number generator used for determining which parameters
                          are used in each epoch for computation of gradients, defaults to 88
         :type rng_seed: int, optional
-        :raises ValueError: If negative value of threads is given
         :return: Objective function outputs and parameters for each epoch
         :rtype: ndarray
         """
@@ -216,6 +218,14 @@ class DifferenceGradientDescent:
             epochs,
         ) = difference_gradient_descent._checks._check_iterables(
             differences, learning_rates, epochs
+        )
+
+        initial_parameters = difference_gradient_descent._checks._check_arguments(
+            initial_parameters=initial_parameters,
+            parameters_used=parameters_used,
+            momentum=momentum,
+            threads=threads,
+            rng_seed=rng_seed,
         )
 
         n_parameters = len(initial_parameters)
@@ -312,9 +322,6 @@ class DifferenceGradientDescent:
                     parameters,
                 )
 
-        else:
-            raise ValueError("Number of threads should be positive.")
-
         return outputs, parameters
 
     def partially_partial_gradient_descent(
@@ -325,7 +332,7 @@ class DifferenceGradientDescent:
         partial_epochs,
         total_epochs,
         parameters_used,
-        momentum=0.0,
+        momentum=0,
         threads=1,
         rng_seed=88,
         **constants
@@ -335,11 +342,11 @@ class DifferenceGradientDescent:
         regular Difference Gradient Descent for the rest of the epochs (i.e. `total_epochs`-`partial_epochs`).
 
         :param initial_parameters: Starting parameter values for the algorithm
-        :type initial_parameters: list
+        :type initial_parameters: int, float, list or ndarray
         :param differences: Sequence of difference values, one for each epoch.
-        :type differences: ndarray
+        :type differences: int, float or ndarray
         :param learning_rates: Sequence of learning rates, one for each epoch
-        :type learning_rates: ndarray
+        :type learning_rates: int, float or ndarray
         :param partial_epochs: Number of epochs for Partial Gradient Descent
         :type partial_epochs: int
         :param total_epochs: Total number of epochs including both for partial and regular algorithms.
@@ -348,8 +355,8 @@ class DifferenceGradientDescent:
         :type total_epochs: int
         :param parameters_used: Number of parameters used in each epoch for computation of gradients
         :type parameters_used: int
-        :param momentum: Momentum turn for stabilizing the rate of learning when moving towards the global optimum, defaults to 0.0
-        :type momentum: float, optional
+        :param momentum: Momentum turn for stabilizing the rate of learning when moving towards the global optimum, defaults to 0
+        :type momentum: int or float, optional
         :param threads: Number of CPU threads used for computation, defaults to 1
         :type threads: int, optional
         :param rng_seed: Seed for the random number generator used for determining which parameters
@@ -365,6 +372,16 @@ class DifferenceGradientDescent:
             total_epochs,
         ) = difference_gradient_descent._checks._check_iterables(
             differences, learning_rates, total_epochs
+        )
+
+        initial_parameters = difference_gradient_descent._checks._check_arguments(
+            initial_parameters=initial_parameters,
+            partial_epochs=partial_epochs,
+            total_epochs=total_epochs,
+            parameters_used=parameters_used,
+            momentum=momentum,
+            threads=threads,
+            rng_seed=rng_seed,
         )
 
         outputs_p, parameters_p = self.partial_gradient_descent(
@@ -406,10 +423,14 @@ class DifferenceGradientDescent:
         :param parameters: Parameters values in each of the epochs. Should be ``epochs`` by ``n_parameters`` shaped ndarray
         :type parameters: ndarray
         :param columns: Column names for the DataFrame. Should include names for all the outputs, parameters and constants
-        :type columns: list
+        :type columns: ndarray or list
         :return: Dataframe of all the values of inputs and outputs of the objective function for each epoch
         :rtype: pd.DataFrame
         """
+
+        difference_gradient_descent._checks._check_arguments(
+            outputs=outputs, parameters=parameters, columns=columns
+        )
 
         inputs = np.concatenate(
             [
