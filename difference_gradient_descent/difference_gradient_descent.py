@@ -68,9 +68,9 @@ class DifferenceGradientDescent:
         :param initial_parameters: Starting parameter values for the algorithm
         :type initial_parameters: int, float, list or ndarray
         :param differences: Sequence of difference values, one for each epoch.
-        :type differences: int, float or ndarray
+        :type differences: int, float, list or ndarray
         :param learning_rates: Sequence of learning rates, one for each epoch
-        :type learning_rates: int, float or ndarray
+        :type learning_rates: int, float, list or ndarray
         :param epochs: Number of epochs
         :type epochs: int
         :param momentum: Momentum turn for stabilizing the rate of learning when moving towards the global optimum, defaults to 0
@@ -93,7 +93,7 @@ class DifferenceGradientDescent:
             initial_parameters, momentum, threads
         )
 
-        n_parameters = len(initial_parameters)
+        n_parameters = initial_parameters.shape[0]
         n_outputs = len(self.objective_function(initial_parameters, **constants))
         outputs = np.zeros([epochs, n_outputs])
         parameters = np.zeros([epochs + 1, n_parameters])
@@ -194,9 +194,9 @@ class DifferenceGradientDescent:
         :param initial_parameters: Starting parameter values for the algorithm
         :type initial_parameters: int, float, list or ndarray
         :param differences: Sequence of difference values, one for each epoch.
-        :type differences: int, float or ndarray
+        :type differences: int, float, list or ndarray
         :param learning_rates: Sequence of learning rates, one for each epoch
-        :type learning_rates: int, float or ndarray
+        :type learning_rates: int, float, list or ndarray
         :param epochs: Number of epochs
         :type epochs: int
         :param parameters_used: Number of parameters used in each epoch for computation of gradients
@@ -228,7 +228,7 @@ class DifferenceGradientDescent:
             rng_seed=rng_seed,
         )
 
-        n_parameters = len(initial_parameters)
+        n_parameters = initial_parameters.shape[0]
         n_outputs = len(self.objective_function(initial_parameters, **constants))
         outputs = np.zeros([epochs, n_outputs])
         parameters = np.zeros([epochs + 1, n_parameters])
@@ -344,9 +344,9 @@ class DifferenceGradientDescent:
         :param initial_parameters: Starting parameter values for the algorithm
         :type initial_parameters: int, float, list or ndarray
         :param differences: Sequence of difference values, one for each epoch.
-        :type differences: int, float or ndarray
+        :type differences: int, float, list or ndarray
         :param learning_rates: Sequence of learning rates, one for each epoch
-        :type learning_rates: int, float or ndarray
+        :type learning_rates: int, float, list or ndarray
         :param partial_epochs: Number of epochs for Partial Gradient Descent
         :type partial_epochs: int
         :param total_epochs: Total number of epochs including both for partial and regular algorithms.
@@ -436,7 +436,8 @@ class DifferenceGradientDescent:
             [
                 parameters,
                 np.full(
-                    (len(parameters), len(constants.values())), list(constants.values())
+                    (parameters.shape[1], len(constants.values())),
+                    list(constants.values()),
                 ),
             ],
             axis=1,

@@ -8,10 +8,29 @@ def _check_iterables(differences, learning_rates, epochs):
         raise ValueError("Number of epochs should be an integer")
     if epochs < 1:
         raise ValueError("Number of epochs should be positive")
+
     if isinstance(differences, (int, float)):
         differences = Schedule().constant(differences[0])
+    elif isinstance(differences, list):
+        differences = np.asarray(differences)
+    elif isinstance(differences, np.ndarray):
+        pass
+    else:
+        raise ValueError(
+            "Differences should be of type `int`, `float`, `list` or `np.ndarray`"
+        )
+
     if isinstance(learning_rates, (int, float)):
         learning_rates = Schedule(epochs).constant(learning_rates[0])
+    elif isinstance(learning_rates, list):
+        learning_rates = np.asarray(learning_rates)
+    elif isinstance(learning_rates, np.ndarray):
+        pass
+    else:
+        raise ValueError(
+            "Learning rates should be of type `int`, `float`, `list` or `np.ndarray`"
+        )
+
     if differences.shape[0] != learning_rates.shape[0]:
         raise ValueError("Number of differences and learning rates should be equal.")
     if epochs != differences.shape[0]:
