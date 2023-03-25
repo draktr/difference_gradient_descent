@@ -15,6 +15,7 @@ as well as parallel computing for performance benefits.
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
+import difference_gradient_descent._checks
 
 
 class DifferenceGradientDescent:
@@ -83,14 +84,13 @@ class DifferenceGradientDescent:
         :rtype: ndarray
         """
 
-        if (
-            epochs != len(learning_rates)
-            or epochs != len(differences)
-            or len(learning_rates) != len(differences)
-        ):
-            raise ValueError(
-                "Number of epochs, learning rates and differences given should be equal."
-            )
+        (
+            differences,
+            learning_rates,
+            epochs,
+        ) = difference_gradient_descent._checks._check_iterables(
+            differences, learning_rates, epochs
+        )
 
         n_parameters = len(initial_parameters)
         n_outputs = len(self.objective_function(initial_parameters, **constants))
@@ -101,8 +101,8 @@ class DifferenceGradientDescent:
         change = 0
 
         if threads == 1:
-            for epoch, rate, difference in zip(
-                range(epochs), learning_rates, differences
+            for epoch, (rate, difference) in enumerate(
+                zip(learning_rates, differences)
             ):
 
                 # Evaluating the objective function that will count as "official" one for this epoch
@@ -138,11 +138,12 @@ class DifferenceGradientDescent:
                     "Each parameter should have only one CPU thread, along with one for the base evaluation."
                 )
 
-            for epoch, rate, difference in zip(
-                range(epochs), learning_rates, differences
+            # One set of parameters is needed for each partial derivative, and one is needed for the base case
+            current_parameters = np.zeros([n_parameters + 1, n_parameters])
+
+            for epoch, (rate, difference) in enumerate(
+                zip(learning_rates, differences)
             ):
-                # One set of parameters is needed for each partial derivative, and one is needed for the base case
-                current_parameters = np.zeros([n_parameters + 1, n_parameters])
                 current_parameters[0] = parameters[epoch]
                 for parameter in range(n_parameters):
                     current_parameters[parameter + 1] = parameters[epoch]
@@ -217,14 +218,13 @@ class DifferenceGradientDescent:
         :rtype: ndarray
         """
 
-        if (
-            epochs != len(learning_rates)
-            or epochs != len(differences)
-            or len(learning_rates) != len(differences)
-        ):
-            raise ValueError(
-                "Number of epochs, learning rates and differences given should be equal."
-            )
+        (
+            differences,
+            learning_rates,
+            epochs,
+        ) = difference_gradient_descent._checks._check_iterables(
+            differences, learning_rates, epochs
+        )
 
         n_parameters = len(initial_parameters)
         n_outputs = len(self.objective_function(initial_parameters, **constants))
@@ -236,8 +236,8 @@ class DifferenceGradientDescent:
         change = 0
 
         if threads == 1:
-            for epoch, rate, difference in zip(
-                range(epochs), learning_rates, differences
+            for epoch, (rate, difference) in enumerate(
+                zip(learning_rates, differences)
             ):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
@@ -279,14 +279,16 @@ class DifferenceGradientDescent:
                     "Each parameter should have only one CPU thread, along with one for the base evaluation."
                 )
 
-            for epoch, rate, difference in zip(
-                range(epochs), learning_rates, differences
+            # One set of parameters is needed for each partial derivative used, and one is needed for the base case
+            current_parameters = np.zeros([parameters_used + 1, n_parameters])
+
+            for epoch, (rate, difference) in enumerate(
+                zip(learning_rates, differences)
             ):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
                 # Objective function is evaluated only for random parameters because we need it
                 # to calculate partial derivatives, while limiting computational expense
-                current_parameters = np.zeros([parameters_used + 1, n_parameters])
                 current_parameters[0] = parameters[epoch]
                 for parameter in range(parameters_used):
                     current_parameters[parameter + 1] = parameters[epoch]
@@ -357,9 +359,6 @@ class DifferenceGradientDescent:
         :type total_epochs: int
         :param parameters_used: Number of parameters used in each epoch for computation of gradients
         :type parameters_used: int
-        :param constants: Constants values required for the evaluation of the objective function
-                          that aren't adjusted in the process of gradient descent, defaults to None
-        :type constants: list, optional
         :param momentum: Momentum turn for stabilizing the rate of learning when moving towards the global optimum, defaults to 0.0
         :type momentum: float, optional
         :param threads: Number of CPU threads used for computation, defaults to 1
@@ -370,6 +369,14 @@ class DifferenceGradientDescent:
         :return: Objective function outputs and parameters for each epoch
         :rtype: ndarray
         """
+
+        (
+            differences,
+            learning_rates,
+            total_epochs,
+        ) = difference_gradient_descent._checks._check_iterables(
+            differences, learning_rates, total_epochs
+        )
 
         outputs_p, parameters_p = self.partial_gradient_descent(
             initial_parameters,
@@ -400,7 +407,7 @@ class DifferenceGradientDescent:
 
         return outputs, parameters
 
-    def values_out(self, outputs, parameters, constants, columns):
+    def values_out(self, outputs, parameters, columns, **constants):
         """
         Produces a Pandas DataFrame of objective function outputs and parameter values for each epoch of the algorithm.
 
@@ -409,8 +416,6 @@ class DifferenceGradientDescent:
         :type outputs: ndarray
         :param parameters: Parameters values in each of the epochs. Should be ``epochs`` by ``n_parameters`` shaped ndarray
         :type parameters: ndarray
-        :param constants: Constant values for only one of the epochs. Shouls be 1 by ``len(constants)`` shaped ndarray
-        :type constants: list
         :param columns: Column names for the DataFrame. Should include names for all the outputs, parameters and constants
         :type columns: list
         :return: Dataframe of all the values of inputs and outputs of the objective function for each epoch
@@ -418,7 +423,13 @@ class DifferenceGradientDescent:
         """
 
         inputs = np.concatenate(
-            [parameters, np.full((len(parameters), len(constants)), constants)], axis=1
+            [
+                parameters,
+                np.full(
+                    (len(parameters), len(constants.values())), list(constants.values())
+                ),
+            ],
+            axis=1,
         )
 
         values = pd.DataFrame(
