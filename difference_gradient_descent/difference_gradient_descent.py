@@ -5,8 +5,6 @@ computing gradients. This approach allows for the application of Gradient Descen
 function as long as it can be evaluated. Methods in this class allow for computing only a random subset of gradients,
 as well as parallel computing for performance benefits.
 
-:raises ValueError: If the number of epochs, learning rates and differences do not match
-:raises ValueError: If the number of threads specified doesn't match the number of processes
 :raises ValueError: If negative value of threads is given
 :return: Objective function outputs and parameters for each epoch
 :rtype: ndarray
@@ -31,6 +29,7 @@ class DifferenceGradientDescent:
         :type objective_function: Function
         """
 
+        difference_gradient_descent._checks._check_objective(objective_function)
         self.objective_function = objective_function
 
     def _update(
@@ -77,8 +76,6 @@ class DifferenceGradientDescent:
         :type epochs: int
         :param threads: Number of CPU threads used for computation, defaults to 1
         :type threads: int, optional
-        :raises ValueError: If the number of epochs, learning rates and differences do not match
-        :raises ValueError: If the number of threads specified doesn't match the number of processes
         :raises ValueError: If negative value of threads is given
         :return: Objective function outputs and parameters for each epoch
         :rtype: ndarray
@@ -133,10 +130,7 @@ class DifferenceGradientDescent:
                 )
 
         elif threads > 1:
-            if len(parameters[0]) + 1 != threads:
-                raise ValueError(
-                    "Each parameter should have only one CPU thread, along with one for the base evaluation."
-                )
+            difference_gradient_descent._checks._check_threads(threads, parameters)
 
             # One set of parameters is needed for each partial derivative, and one is needed for the base case
             current_parameters = np.zeros([n_parameters + 1, n_parameters])
@@ -211,8 +205,6 @@ class DifferenceGradientDescent:
         :param rng_seed: Seed for the random number generator used for determining which parameters
                          are used in each epoch for computation of gradients, defaults to 88
         :type rng_seed: int, optional
-        :raises ValueError: If the number of epochs, learning rates and differences do not match
-        :raises ValueError: If the number of threads specified doesn't match the number of processes
         :raises ValueError: If negative value of threads is given
         :return: Objective function outputs and parameters for each epoch
         :rtype: ndarray
@@ -274,10 +266,7 @@ class DifferenceGradientDescent:
                 )
 
         elif threads > 1:
-            if parameters_used + 1 != threads:
-                raise ValueError(
-                    "Each parameter should have only one CPU thread, along with one for the base evaluation."
-                )
+            difference_gradient_descent._checks._check_threads(threads, parameters)
 
             # One set of parameters is needed for each partial derivative used, and one is needed for the base case
             current_parameters = np.zeros([parameters_used + 1, n_parameters])

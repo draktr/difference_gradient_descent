@@ -16,3 +16,17 @@ def _check_iterables(differences, learning_rates, epochs):
         )
 
     return differences, learning_rates, epochs
+
+
+def _check_objective(objective_function):
+    if not callable(objective_function):
+        raise ValueError(
+            f"Objective function should be a callable. Current objective function type is:{type(objective_function)}"
+        )
+
+
+def _check_threads(threads, parameters):
+    if len(parameters[0]) + 1 != threads:
+        raise ValueError(
+            "Each parameter should have only one CPU thread, along with one for the base evaluation."
+        )
