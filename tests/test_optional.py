@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 from difference_gradient_descent import DifferenceGradientDescent
 from optschedule import Schedule
 
@@ -75,4 +76,6 @@ def test_values_out(optimizer, differences, rates):
         outputs[-1] <= 0.1
         and values.columns[0] == "objective_value"
         and values.columns[1] == "x_variable"
+        and not np.all(np.isnan(values))
+        and not np.all(np.isinf(values))
     )
