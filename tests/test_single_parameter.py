@@ -84,7 +84,7 @@ def test_partial_multithread(optimizer, differences, rates):
     assert outputs[-1] <= 0.1
 
 
-def test_partially_partial_one_thread(optimizer, differences, rates):
+def test_partially_partial_multithread(optimizer, differences, rates):
     outputs, parameters = optimizer.partially_partial_gradient_descent(
         initial_parameters=[5],
         differences=differences,
