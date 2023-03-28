@@ -10,7 +10,7 @@ def _check_iterables(differences, learning_rates, epochs):
         raise ValueError("Number of epochs should be positive")
 
     if isinstance(differences, (int, float)):
-        differences = Schedule().constant(differences[0])
+        differences = Schedule(epochs).constant(differences)
     elif isinstance(differences, list):
         differences = np.asarray(differences)
     elif isinstance(differences, np.ndarray):
@@ -21,7 +21,7 @@ def _check_iterables(differences, learning_rates, epochs):
         )
 
     if isinstance(learning_rates, (int, float)):
-        learning_rates = Schedule(epochs).constant(learning_rates[0])
+        learning_rates = Schedule(epochs).constant(learning_rates)
     elif isinstance(learning_rates, list):
         learning_rates = np.asarray(learning_rates)
     elif isinstance(learning_rates, np.ndarray):
@@ -63,6 +63,7 @@ def _check_arguments(
     rng_seed=None,
     partial_epochs=None,
     total_epochs=None,
+    outputs=None,
     parameters=None,
     columns=None,
 ):
@@ -116,10 +117,10 @@ def _check_arguments(
         raise ValueError("Parameters should be of type `np.ndarray`")
     if not isinstance(columns, (np.ndarray, list, type(None))):
         raise ValueError("Columns should be either a list or `np.ndarray`")
-    if parameters is not None and columns is not None:
-        if parameters.shape[1] != columns.shape[0]:
+    if outputs is not None and parameters is not None and columns is not None:
+        if (outputs.shape[1] + parameters.shape[1]) != len(columns):
             raise ValueError(
-                "Number of parameter columns in `parameters` array doesn't match the number of column names given in `columns`"
+                "Number of column names given in `columns` doesn't match the combined number of outputs and parameters"
             )
 
     return initial_parameters

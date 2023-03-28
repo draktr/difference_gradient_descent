@@ -78,7 +78,7 @@ class DifferenceGradientDescent:
         epochs,
         momentum=0,
         threads=1,
-        **constants
+        **constants,
     ):
         """
         Performs Gradient Descent Algorithm by using difference instead of infinitesimal differential.
@@ -192,7 +192,7 @@ class DifferenceGradientDescent:
                 )
 
         self.outputs = outputs
-        self.parameters = parameters
+        self.parameters = parameters[0:-1]
 
         return outputs, parameters
 
@@ -206,7 +206,7 @@ class DifferenceGradientDescent:
         momentum=0,
         threads=1,
         rng_seed=88,
-        **constants
+        **constants,
     ):
         """
         Performs Gradient Descent Algorithm by computing gradients on only specified number of randomly selected parameters
@@ -345,7 +345,7 @@ class DifferenceGradientDescent:
                 )
 
         self.outputs = outputs
-        self.parameters = parameters
+        self.parameters = parameters[0:-1]
 
         return outputs, parameters
 
@@ -360,7 +360,7 @@ class DifferenceGradientDescent:
         momentum=0,
         threads=1,
         rng_seed=88,
-        **constants
+        **constants,
     ):
         """
         Performs Partial Gradient Descent Algorithm for the first `partial_epochs` epochs and
@@ -418,7 +418,7 @@ class DifferenceGradientDescent:
             momentum,
             threads,
             rng_seed,
-            **constants
+            **constants,
         )
 
         outputs_r, parameters_r = self.difference_gradient_descent(
@@ -428,7 +428,7 @@ class DifferenceGradientDescent:
             epochs=(total_epochs - partial_epochs),
             momentum=momentum,
             threads=threads,
-            **constants
+            **constants,
         )
 
         outputs = np.append(outputs_p, outputs_r)
@@ -437,7 +437,7 @@ class DifferenceGradientDescent:
         parameters = np.reshape(parameters, newshape=[-1, 1])
 
         self.outputs = outputs
-        self.parameters = parameters
+        self.parameters = parameters[0:-1]
 
         return outputs, parameters
 
@@ -452,7 +452,7 @@ class DifferenceGradientDescent:
         """
 
         difference_gradient_descent._checks._check_arguments(
-            parameters=self.parameters, columns=columns
+            outputs=self.outputs, parameters=self.parameters, columns=columns
         )
 
         if len(constants.values()) != 0:
@@ -470,7 +470,8 @@ class DifferenceGradientDescent:
             inputs = self.parameters
 
         values = pd.DataFrame(
-            [pd.DataFrame(self.outputs), pd.DataFrame(inputs)], columns=columns
+            np.column_stack((self.outputs, inputs)),
+            columns=columns,
         )
 
         return values
