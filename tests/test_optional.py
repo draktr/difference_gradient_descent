@@ -15,6 +15,17 @@ def optimizer():
 
 
 @pytest.fixture
+def constants_optimizer():
+    def loo(params, permission):
+        if permission:
+            return [(params[0] + 2) ** 2]
+
+    constants_optimizer = DifferenceGradientDescent(objective_function=loo)
+
+    return constants_optimizer
+
+
+@pytest.fixture
 def scheduler():
     scheduler = Schedule(n_steps=1000)
 
@@ -79,3 +90,16 @@ def test_values_out(optimizer, differences, rates):
         and not np.all(np.isnan(values))
         and not np.all(np.isinf(values))
     )
+
+
+def test_values_out_constants(constants_optimizer, differences, rates):
+
+    outputs, parameters = constants_optimizer.difference_gradient_descent(
+        initial_parameters=[5],
+        differences=differences,
+        learning_rates=rates,
+        epochs=1000,
+        permission=True,
+    )
+
+    assert outputs[-1] <= 0.1
