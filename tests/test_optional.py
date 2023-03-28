@@ -34,3 +34,45 @@ def rates(scheduler):
     rates = scheduler.exponential_decay(initial_value=0.01, decay_rate=0.5)
 
     return rates
+
+
+def test_momentum(optimizer, differences, rates):
+    outputs, parameters = optimizer.difference_gradient_descent(
+        initial_parameters=[5],
+        differences=differences,
+        learning_rates=rates,
+        epochs=1000,
+        momentum=0.9,
+    )
+
+    assert outputs[-1] <= 0.1
+
+
+def test_rng_seed(optimizer, differences, rates):
+    outputs, parameters = optimizer.partial_gradient_descent(
+        initial_parameters=[5],
+        differences=differences,
+        learning_rates=rates,
+        epochs=1000,
+        parameters_used=1,
+        rng_seed=2,
+    )
+
+    assert outputs[-1] <= 0.1
+
+
+def test_values_out(optimizer, differences, rates):
+    outputs, parameters = optimizer.difference_gradient_descent(
+        initial_parameters=[5],
+        differences=differences,
+        learning_rates=rates,
+        epochs=1000,
+    )
+
+    values = optimizer.values_out(["objective_value", "x_variable"])
+
+    assert (
+        outputs[-1] <= 0.1
+        and values.columns[0] == "objective_value"
+        and values.columns[1] == "x_variable"
+    )
