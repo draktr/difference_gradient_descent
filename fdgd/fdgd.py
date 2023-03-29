@@ -310,11 +310,11 @@ class FDGD:
                 )
 
         elif threads > 1:
-            fdgd._checks._check_threads(threads, parameters)
+            fdgd._checks._check_threads(threads, parameters_used)
 
             # One set of parameters is needed for each partial derivative used,
             # and one is needed for the base case
-            current_parameters = np.zeros([parameters_used + 1, n_parameters])
+            current_parameters = np.zeros([n_parameters + 1, n_parameters])
 
             for epoch, (rate, difference) in enumerate(zip(l, h)):
                 param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
@@ -322,7 +322,7 @@ class FDGD:
                 # Objective function is evaluated only for random parameters because we need it
                 # to calculate partial derivatives, while limiting computational expense
                 current_parameters[0] = parameters[epoch]
-                for parameter in range(parameters_used):
+                for parameter in range(n_parameters):
                     current_parameters[parameter + 1] = parameters[epoch]
                     if parameter in param_idx:
                         current_parameters[parameter + 1, parameter] = (
@@ -330,7 +330,10 @@ class FDGD:
                         )
 
                 parallel_outputs = Parallel(n_jobs=threads)(
-                    delayed(self.objective)(i, **constants) for i in current_parameters
+                    delayed(self.objective)(i, **constants)
+                    for i in current_parameters[
+                        np.append(np.array([0]), np.add(param_idx, 1))
+                    ]
                 )
 
                 # This objective function evaluation will be used as the
