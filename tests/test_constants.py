@@ -44,7 +44,7 @@ def test_one_thread(optimizer, differences, rates):
         differences=differences,
         learning_rates=rates,
         epochs=1000,
-        permission=[3],
+        permission=True,
     )
 
     assert outputs[-1] <= 0.1
@@ -58,7 +58,7 @@ def test_multithread(optimizer, differences, rates):
         learning_rates=rates,
         epochs=1000,
         threads=3,
-        permission=[3],
+        permission=True,
     )
 
     assert outputs[-1] <= 0.1
@@ -72,7 +72,7 @@ def test_partial_one_thread(optimizer, differences, rates):
         learning_rates=rates,
         epochs=1000,
         parameters_used=1,
-        permission=[3],
+        permission=True,
     )
 
     assert outputs[-1] <= 0.1
@@ -87,7 +87,7 @@ def test_partial_multithread(optimizer, differences, rates):
         epochs=1000,
         parameters_used=1,
         threads=2,
-        permission=[3],
+        permission=True,
     )
 
     assert outputs[-1] <= 0.1
