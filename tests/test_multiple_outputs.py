@@ -47,8 +47,7 @@ def test_one_thread(optimizer, differences, rates):
         epochs=1000,
     )
 
-    assert outputs[-1][0] <= 0.1
-    assert abs(outputs[-1][1] - (-6)) <= 10**-1
+    assert outputs[-1][0] <= 0.1 and abs(outputs[-1][1] - (-6)) <= 0.1
 
 
 def test_multithread(optimizer, differences, rates):
@@ -60,8 +59,7 @@ def test_multithread(optimizer, differences, rates):
         threads=4,
     )
 
-    assert outputs[-1][0] <= 0.1
-    assert abs(outputs[-1][1] - (-6)) <= 10**-1
+    assert outputs[-1][0] <= 0.1 and abs(outputs[-1][1] - (-6)) <= 0.1
 
 
 def test_partial_one_thread(optimizer, differences, rates):
@@ -70,11 +68,10 @@ def test_partial_one_thread(optimizer, differences, rates):
         h=differences,
         l=rates,
         epochs=1000,
-        parameters_used=1,
+        parameters_used=2,
     )
 
-    assert outputs[-1][0] <= 0.1
-    assert abs(outputs[-1][1] - (-6)) <= 10**-1
+    assert outputs[-1][0] <= 0.1 and abs(outputs[-1][1] - (-6)) <= 0.1
 
 
 def test_partial_multithread(optimizer, differences, rates):
@@ -84,8 +81,7 @@ def test_partial_multithread(optimizer, differences, rates):
         l=rates,
         epochs=1000,
         parameters_used=2,
-        threads=4,
+        threads=3,
     )
 
-    assert outputs[-1][0] <= 0.1
-    assert abs(outputs[-1][1] - (-6)) <= 10**-1
+    assert outputs[-1][0] <= 0.1 and abs(outputs[-1][1] - (-6)) <= 0.1

@@ -78,7 +78,7 @@ def test_partial_multithread(optimizer, differences, rates):
         l=rates,
         epochs=1000,
         parameters_used=2,
-        threads=4,
+        threads=3,
     )
 
     assert outputs[-1] <= 0.1

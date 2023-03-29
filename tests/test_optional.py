@@ -153,8 +153,8 @@ def test_values_out_multiple_outputs(outputs_optimizer, differences, rates):
         and values.columns[0] == "objective_value"
         and values.columns[1] == "additional_output"
         and values.columns[2] == "x_variable"
-        and values.columns[2] == "y_variable"
-        and values.columns[2] == "z_variable"
+        and values.columns[3] == "y_variable"
+        and values.columns[4] == "z_variable"
         and not np.all(np.isnan(values))
         and not np.all(np.isinf(values))
     )

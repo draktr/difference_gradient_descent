@@ -86,7 +86,7 @@ def test_partial_multithread(optimizer, differences, rates):
         l=rates,
         epochs=1000,
         parameters_used=1,
-        threads=3,
+        threads=2,
         permission=True,
     )
 
