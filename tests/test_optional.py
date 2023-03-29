@@ -26,6 +26,19 @@ def constants_optimizer():
 
 
 @pytest.fixture
+def outputs_optimizer():
+    def goo(params):
+        return [
+            (params[0] + 2) ** 2 + (params[1] + 3) ** 2 + (params[2] + 1) ** 2,
+            params[0] + params[1] + params[2],
+        ]
+
+    outputs_optimizer = DifferenceGradientDescent(objective_function=goo)
+
+    return outputs_optimizer
+
+
+@pytest.fixture
 def scheduler():
     scheduler = Schedule(n_steps=1000)
 
@@ -102,4 +115,44 @@ def test_values_out_constants(constants_optimizer, differences, rates):
         permission=True,
     )
 
-    assert outputs[-1] <= 0.1
+    values = optimizer.values_out(["objective_value", "x_variable", "permission"])
+
+    assert (
+        outputs[-1] <= 0.1
+        and values.columns[0] == "objective_value"
+        and values.columns[1] == "x_variable"
+        and values.columns[2] == "permission"
+        and not np.all(np.isnan(values))
+        and not np.all(np.isinf(values))
+    )
+
+
+def test_values_out_multiple_outputs(outputs_optimizer, differences, rates):
+    outputs, parameters = outputs_optimizer.difference_gradient_descent(
+        initial_parameters=[5, 5, 5],
+        differences=differences,
+        learning_rates=rates,
+        epochs=1000,
+    )
+
+    values = optimizer.values_out(
+        [
+            "objective_value",
+            "additional_output",
+            "x_variable",
+            "y_variable",
+            "z_variable",
+        ]
+    )
+
+    assert (
+        outputs[-1][0] <= 0.1
+        and abs(outputs[-1][1] - (-6)) <= 10**-1
+        and values.columns[0] == "objective_value"
+        and values.columns[1] == "additional_output"
+        and values.columns[2] == "x_variable"
+        and values.columns[2] == "y_variable"
+        and values.columns[2] == "z_variable"
+        and not np.all(np.isnan(values))
+        and not np.all(np.isinf(values))
+    )
