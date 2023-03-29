@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from difference_gradient_descent import DifferenceGradientDescent
+from fdgd import FDGD
 from optschedule import Schedule
 
 
@@ -9,7 +9,7 @@ def optimizer():
     def foo(params):
         return [(params[0] + 2) ** 2]
 
-    optimizer = DifferenceGradientDescent(objective_function=foo)
+    optimizer = FDGD(objective=foo)
 
     return optimizer
 
@@ -20,7 +20,7 @@ def constants_optimizer():
         if permission:
             return [(params[0] + 2) ** 2]
 
-    constants_optimizer = DifferenceGradientDescent(objective_function=loo)
+    constants_optimizer = FDGD(objective=loo)
 
     return constants_optimizer
 
@@ -33,7 +33,7 @@ def outputs_optimizer():
             params[0] + params[1] + params[2],
         ]
 
-    outputs_optimizer = DifferenceGradientDescent(objective_function=goo)
+    outputs_optimizer = FDGD(objective=goo)
 
     return outputs_optimizer
 
@@ -62,10 +62,10 @@ def rates(scheduler):
 
 
 def test_momentum(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=[5],
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = optimizer.descent(
+        initial=[5],
+        h=differences,
+        l=rates,
         epochs=1000,
         momentum=0.9,
     )
@@ -74,10 +74,10 @@ def test_momentum(optimizer, differences, rates):
 
 
 def test_rng_seed(optimizer, differences, rates):
-    outputs, parameters = optimizer.partial_gradient_descent(
-        initial_parameters=[5],
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = optimizer.partial_descent(
+        initial=[5],
+        h=differences,
+        l=rates,
         epochs=1000,
         parameters_used=1,
         rng_seed=2,
@@ -87,10 +87,10 @@ def test_rng_seed(optimizer, differences, rates):
 
 
 def test_values_out(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=[5],
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = optimizer.descent(
+        initial=[5],
+        h=differences,
+        l=rates,
         epochs=1000,
     )
 
@@ -107,15 +107,17 @@ def test_values_out(optimizer, differences, rates):
 
 def test_values_out_constants(constants_optimizer, differences, rates):
 
-    outputs, parameters = constants_optimizer.difference_gradient_descent(
-        initial_parameters=[5],
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = constants_optimizer.descent(
+        initial=[5],
+        h=differences,
+        l=rates,
         epochs=1000,
         permission=True,
     )
 
-    values = optimizer.values_out(["objective_value", "x_variable", "permission"])
+    values = constants_optimizer.values_out(
+        ["objective_value", "x_variable", "permission"]
+    )
 
     assert (
         outputs[-1] <= 0.1
@@ -128,14 +130,14 @@ def test_values_out_constants(constants_optimizer, differences, rates):
 
 
 def test_values_out_multiple_outputs(outputs_optimizer, differences, rates):
-    outputs, parameters = outputs_optimizer.difference_gradient_descent(
-        initial_parameters=[5, 5, 5],
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = outputs_optimizer.descent(
+        initial=[5, 5, 5],
+        h=differences,
+        l=rates,
         epochs=1000,
     )
 
-    values = optimizer.values_out(
+    values = outputs_optimizer.values_out(
         [
             "objective_value",
             "additional_output",

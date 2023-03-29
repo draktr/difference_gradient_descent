@@ -3,48 +3,48 @@ import warnings
 from optschedule import Schedule
 
 
-def _check_iterables(differences, learning_rates, epochs):
+def _check_iterables(h, l, epochs):
     if not isinstance(epochs, int):
         raise ValueError("Number of epochs should be an integer")
     if epochs < 1:
         raise ValueError("Number of epochs should be positive")
 
-    if isinstance(differences, (int, float)):
-        differences = Schedule(epochs).constant(differences)
-    elif isinstance(differences, list):
-        differences = np.asarray(differences)
-    elif isinstance(differences, np.ndarray):
+    if isinstance(h, (int, float)):
+        h = Schedule(epochs).constant(h)
+    elif isinstance(h, list):
+        h = np.asarray(h)
+    elif isinstance(h, np.ndarray):
         pass
     else:
         raise ValueError(
             "Differences should be of type `int`, `float`, `list` or `np.ndarray`"
         )
 
-    if isinstance(learning_rates, (int, float)):
-        learning_rates = Schedule(epochs).constant(learning_rates)
-    elif isinstance(learning_rates, list):
-        learning_rates = np.asarray(learning_rates)
-    elif isinstance(learning_rates, np.ndarray):
+    if isinstance(l, (int, float)):
+        l = Schedule(epochs).constant(l)
+    elif isinstance(l, list):
+        l = np.asarray(l)
+    elif isinstance(l, np.ndarray):
         pass
     else:
         raise ValueError(
             "Learning rates should be of type `int`, `float`, `list` or `np.ndarray`"
         )
 
-    if differences.shape[0] != learning_rates.shape[0]:
+    if h.shape[0] != l.shape[0]:
         raise ValueError("Number of differences and learning rates should be equal.")
-    if epochs != differences.shape[0]:
+    if epochs != h.shape[0]:
         raise ValueError(
             "Number of epochs, differences and learning rates given should be equal."
         )
 
-    return differences, learning_rates, epochs
+    return h, l, epochs
 
 
-def _check_objective(objective_function):
-    if not callable(objective_function):
+def _check_objective(objective):
+    if not callable(objective):
         raise ValueError(
-            f"Objective function should be a callable. Current objective function type is:{type(objective_function)}"
+            f"Objective function should be a callable. Current objective function type is:{type(objective)}"
         )
 
 
@@ -56,7 +56,7 @@ def _check_threads(threads, parameters):
 
 
 def _check_arguments(
-    initial_parameters=None,
+    initial=None,
     momentum=None,
     threads=None,
     parameters_used=None,
@@ -67,11 +67,11 @@ def _check_arguments(
     parameters=None,
     columns=None,
 ):
-    if isinstance(initial_parameters, (int, float)):
-        initial_parameters = np.array([initial_parameters])
-    elif isinstance(initial_parameters, list):
-        initial_parameters = np.asarray(initial_parameters)
-    elif isinstance(initial_parameters, (np.ndarray, type(None))):
+    if isinstance(initial, (int, float)):
+        initial = np.array([initial])
+    elif isinstance(initial, list):
+        initial = np.asarray(initial)
+    elif isinstance(initial, (np.ndarray, type(None))):
         pass
     else:
         raise ValueError(
@@ -123,4 +123,4 @@ def _check_arguments(
                 "Number of column names given in `columns` doesn't match the combined number of outputs and parameters"
             )
 
-    return initial_parameters
+    return initial

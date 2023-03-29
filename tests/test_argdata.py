@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from difference_gradient_descent import DifferenceGradientDescent
+from fdgd import FDGD
 from optschedule import Schedule
 
 
@@ -9,7 +9,7 @@ def optimizer():
     def foo(params):
         return [(params[0] + 2) ** 2]
 
-    optimizer = DifferenceGradientDescent(objective_function=foo)
+    optimizer = FDGD(objective=foo)
 
     return optimizer
 
@@ -37,11 +37,11 @@ def rates(scheduler):
     return rates
 
 
-def test_ints(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=5,
-        differences=0.0001,
-        learning_rates=0.01,
+def test_ints(optimizer):
+    outputs, parameters = optimizer.descent(
+        initial=5,
+        h=0.0001,
+        l=0.01,
         epochs=1000,
         momentum=0,
     )
@@ -49,11 +49,11 @@ def test_ints(optimizer, differences, rates):
     assert outputs[-1] <= 0.1
 
 
-def test_floats(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=5.2,
-        differences=0.0001,
-        learning_rates=0.01,
+def test_floats(optimizer):
+    outputs, parameters = optimizer.descent(
+        initial=5.2,
+        h=0.0001,
+        l=0.01,
         epochs=1000,
         momentum=0.2,
     )
@@ -62,10 +62,10 @@ def test_floats(optimizer, differences, rates):
 
 
 def test_lists(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=[5.2],
-        differences=list(differences),
-        learning_rates=list(rates),
+    outputs, parameters = optimizer.descent(
+        initial=[5.2],
+        h=list(differences),
+        l=list(rates),
         epochs=1000,
     )
 
@@ -73,10 +73,10 @@ def test_lists(optimizer, differences, rates):
 
 
 def test_arrays(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=np.array([5.2]),
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = optimizer.descent(
+        initial=np.array([5.2]),
+        h=differences,
+        l=rates,
         epochs=1000,
     )
 

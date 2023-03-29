@@ -1,5 +1,5 @@
 import pytest
-from difference_gradient_descent import DifferenceGradientDescent
+from fdgd import FDGD
 from optschedule import Schedule
 
 
@@ -11,7 +11,7 @@ def optimizer():
             params[0] + params[1] + params[2],
         ]
 
-    optimizer = DifferenceGradientDescent(objective_function=foo)
+    optimizer = FDGD(objective=foo)
 
     return optimizer
 
@@ -40,10 +40,10 @@ def rates(scheduler):
 
 
 def test_one_thread(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=[5, 5, 5],
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = optimizer.descent(
+        initial=[5, 5, 5],
+        h=differences,
+        l=rates,
         epochs=1000,
     )
 
@@ -52,10 +52,10 @@ def test_one_thread(optimizer, differences, rates):
 
 
 def test_multithread(optimizer, differences, rates):
-    outputs, parameters = optimizer.difference_gradient_descent(
-        initial_parameters=[5, 5, 5],
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = optimizer.descent(
+        initial=[5, 5, 5],
+        h=differences,
+        l=rates,
         epochs=1000,
         threads=4,
     )
@@ -65,10 +65,10 @@ def test_multithread(optimizer, differences, rates):
 
 
 def test_partial_one_thread(optimizer, differences, rates):
-    outputs, parameters = optimizer.partial_gradient_descent(
-        initial_parameters=[5, 5, 5],
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = optimizer.partial_descent(
+        initial=[5, 5, 5],
+        h=differences,
+        l=rates,
         epochs=1000,
         parameters_used=1,
     )
@@ -78,13 +78,13 @@ def test_partial_one_thread(optimizer, differences, rates):
 
 
 def test_partial_multithread(optimizer, differences, rates):
-    outputs, parameters = optimizer.partial_gradient_descent(
-        initial_parameters=[5, 5, 5],
-        differences=differences,
-        learning_rates=rates,
+    outputs, parameters = optimizer.partial_descent(
+        initial=[5, 5, 5],
+        h=differences,
+        l=rates,
         epochs=1000,
         parameters_used=2,
-        threads=3,
+        threads=4,
     )
 
     assert outputs[-1][0] <= 0.1

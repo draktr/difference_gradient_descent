@@ -416,7 +416,7 @@ class FDGD:
             rng_seed=rng_seed,
         )
 
-        outputs_p, parameters_p = self.partial_gradient_descent(
+        outputs_p, parameters_p = self.partial_descent(
             initial,
             h[:partial_epochs],
             l[:partial_epochs],
@@ -428,7 +428,7 @@ class FDGD:
             **constants,
         )
 
-        outputs_r, parameters_r = self.fdgd(
+        outputs_r, parameters_r = self.descent(
             initial=parameters_p[-1],
             h=h[partial_epochs:],
             l=l[partial_epochs:],
@@ -463,7 +463,9 @@ class FDGD:
         """
 
         fdgd._checks._check_arguments(
-            outputs=self.outputs, parameters=self.parameters, columns=columns
+            outputs=self.outputs,
+            parameters=self.parameters,
+            columns=columns,
         )
 
         if len(constants.values()) != 0:
