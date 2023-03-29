@@ -65,6 +65,7 @@ def _check_arguments(
     total_epochs=None,
     outputs=None,
     parameters=None,
+    constants_values=None,
     columns=None,
 ):
     if isinstance(initial, (int, float)):
@@ -115,12 +116,16 @@ def _check_arguments(
             raise ValueError("Number of total epochs should be a positive integer")
     if not isinstance(parameters, (np.ndarray, type(None))):
         raise ValueError("Parameters should be of type `np.ndarray`")
+    if not isinstance(constants_values, (np.ndarray, type(None))):
+        raise ValueError("Constants values should be of type `np.ndarray`")
     if not isinstance(columns, (np.ndarray, list, type(None))):
         raise ValueError("Columns should be either a list or `np.ndarray`")
     if outputs is not None and parameters is not None and columns is not None:
-        if (outputs.shape[1] + parameters.shape[1]) != len(columns):
+        if (outputs.shape[1] + parameters.shape[1] + constants_values.shape[0]) != len(
+            columns
+        ):
             raise ValueError(
-                "Number of column names given in `columns` doesn't match the combined number of outputs and parameters"
+                "Number of column names given in `columns` doesn't match the combined number of outputs, parameters and constants"
             )
 
     return initial

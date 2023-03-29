@@ -31,10 +31,6 @@ class FDGD:
         """
         Initializes Finite Difference Gradient Descent optimizer.
 
-        Object properties:
-
-        - ``objective`` - function to be optimized
-
         :param objective: Objective function to minimize
         :type objective: Function
         """
@@ -44,6 +40,7 @@ class FDGD:
 
         self._outputs = None
         self._parameters = None
+        self._constants_values = None
 
     @property
     def outputs(self):
@@ -60,6 +57,14 @@ class FDGD:
     @parameters.setter
     def parameters(self, parameters):
         self._parameters = parameters
+
+    @property
+    def constants_values(self):
+        return self._constants_values
+
+    @constants_values.setter
+    def constants_values(self, constants_values):
+        self._constants_values = np.array(list(constants_values))
 
     def _update(
         self,
@@ -198,6 +203,7 @@ class FDGD:
 
         self.outputs = outputs
         self.parameters = parameters[0:-1]
+        self.constants_values = constants.values()
 
         return outputs, parameters
 
@@ -352,6 +358,7 @@ class FDGD:
 
         self.outputs = outputs
         self.parameters = parameters[0:-1]
+        self.constants_values = constants.values()
 
         return outputs, parameters
 
@@ -445,10 +452,11 @@ class FDGD:
 
         self.outputs = outputs
         self.parameters = parameters[0:-1]
+        self.constants_values = constants.values()
 
         return outputs, parameters
 
-    def values_out(self, columns=None, **constants):
+    def values_out(self, columns=None):
         """
         Produces a Pandas DataFrame of objective function outputs and
         parameter values for each epoch of the algorithm.
@@ -465,16 +473,17 @@ class FDGD:
         fdgd._checks._check_arguments(
             outputs=self.outputs,
             parameters=self.parameters,
+            constants_values=self.constants_values,
             columns=columns,
         )
 
-        if len(constants.values()) != 0:
+        if self.constants_values.shape[0] != 0:
             inputs = np.concatenate(
                 [
                     self.parameters,
                     np.full(
-                        (self.parameters.shape[0], len(constants.values())),
-                        list(constants.values()),
+                        (self.parameters.shape[0], self.constants_values.shape[0]),
+                        self.constants_values,
                     ),
                 ],
                 axis=1,
