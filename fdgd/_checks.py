@@ -49,7 +49,12 @@ def _check_objective(objective):
 
 
 def _check_threads(threads, parameters):
-    if len(parameters[0]) + 1 != threads:
+    if isinstance(parameters, int):
+        if parameters + 1 != threads:
+            raise ValueError(
+                "Each parameter should have only one CPU thread, along with one for the base evaluation."
+            )
+    elif len(parameters[0]) + 1 != threads:
         raise ValueError(
             "Each parameter should have only one CPU thread, along with one for the base evaluation."
         )
