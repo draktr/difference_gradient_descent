@@ -1,8 +1,12 @@
 """
-Difference Gradient Descent
+Finite Difference Gradient Descent
 
-Flexible Gradient Descent implementation for problems where gradient of an objective function cannot be found analytically.
+Finite Difference Gradient Descent (FDGD) can optimize any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.
 """
 
+from fdgd.fdgd import FDGD
+
+__all__ = [s for s in dir() if not s.startswith("_")]
+
 __version__ = "0.1.0"
-__author__ = "github.com/draktr"
+__author__ = "draktr"
