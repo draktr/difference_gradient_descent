@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 setup(
     name="findi",
     version="0.1.0",
-    description="Findi: Finite Difference Gradient Descent can solve any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.",
+    description="FinDi: Finite Difference Gradient Descent can solve any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.",
     long_description=desc,
     long_description_content_type="text/markdown",
     url="https://github.com/draktr/findi",

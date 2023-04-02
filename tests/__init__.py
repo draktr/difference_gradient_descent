@@ -1,7 +1,7 @@
 """
-Finite Difference Gradient Descent
+FinDi
 
-Finite Difference Gradient Descent (FDGD) can optimize any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.
+FinDi: Finite Difference Gradient Descent can optimize any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.
 """
 
 from fdgd.fdgd import FDGD
