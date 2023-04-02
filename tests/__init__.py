@@ -4,7 +4,7 @@ FinDi
 FinDi: Finite Difference Gradient Descent can optimize any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.
 """
 
-from fdgd.fdgd import FDGD
+from findi.findi import GradientDescent
 
 __all__ = [s for s in dir() if not s.startswith("_")]
 
