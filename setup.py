@@ -4,15 +4,15 @@ with open("README.md", "r") as f:
     desc = f.read()
 
 setup(
-    name="fdgd",
+    name="findi",
     version="0.1.0",
-    description="Finite Difference Gradient Descent (FDGD) can solve any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.",
+    description="Findi: Finite Difference Gradient Descent can solve any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.",
     long_description=desc,
     long_description_content_type="text/markdown",
-    url="https://github.com/draktr/fdgd",
+    url="https://github.com/draktr/findi",
     author="draktr",
     license="MIT License",
-    packages=["fdgd"],
+    packages=["findi"],
     python_requires=">=3.6",
     install_requires=["numpy", "pandas", "joblib", "optschedule"],
     keywords="optimization, gradient-descent, numerical-analysis, numerical-differentiation",
@@ -36,7 +36,7 @@ setup(
         "Topic :: Scientific/Engineering :: Physics",
     ],
     project_urls={
-        "Documentation": "https://fdgd.readthedocs.io/en/latest/",
-        "Issues": "https://github.com/draktr/fdgd/issues",
+        "Documentation": "https://findi.readthedocs.io/en/latest/",
+        "Issues": "https://github.com/draktr/findi/issues",
     },
 )

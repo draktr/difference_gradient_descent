@@ -1,5 +1,5 @@
 import pytest
-from fdgd import FDGD
+from findi import GradientDescent
 from optschedule import Schedule
 
 
@@ -9,7 +9,7 @@ def optimizer():
         if permission:
             return [(inputs[0] + 2 + inputs[1]) ** 2]
 
-    optimizer = FDGD(objective=foo)
+    optimizer = GradientDescent(objective=foo)
 
     return optimizer
 

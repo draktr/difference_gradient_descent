@@ -1,5 +1,5 @@
 """
-The ``fdgd`` houses ``FDGD`` class that optimizes objective
+The ``findi`` houses ``GradientDescent`` class that optimizes objective
 functions via Gradient Descent Algorithm variation that uses
 finite difference instead of infinitesimal differential for
 computing derivatives. This approach allows for the application
@@ -23,10 +23,10 @@ quasi-hyperparameters that are held constant throughout the epochs.
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-import fdgd._checks
+import findi._checks
 
 
-class FDGD:
+class GradientDescent:
     def __init__(self, objective):
         """
         Initializes Finite Difference Gradient Descent optimizer.
@@ -35,7 +35,7 @@ class FDGD:
         :type objective: Function
         """
 
-        fdgd._checks._check_objective(objective)
+        findi._checks._check_objective(objective)
         self.objective = objective
 
         self._outputs = None
@@ -120,9 +120,9 @@ class FDGD:
         :rtype: ndarray
         """
 
-        (h, l, epochs) = fdgd._checks._check_iterables(h, l, epochs)
+        (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
 
-        initial = fdgd._checks._check_arguments(initial, momentum, threads)
+        initial = findi._checks._check_arguments(initial, momentum, threads)
 
         n_parameters = initial.shape[0]
         n_outputs = len(self.objective(initial, **constants))
@@ -164,7 +164,7 @@ class FDGD:
                 )
 
         elif threads > 1:
-            fdgd._checks._check_threads(threads, parameters)
+            findi._checks._check_threads(threads, parameters)
 
             # One set of parameters is needed for each partial derivative,
             # and one is needed for the base case
@@ -252,9 +252,9 @@ class FDGD:
         :rtype: ndarray
         """
 
-        (h, l, epochs) = fdgd._checks._check_iterables(h, l, epochs)
+        (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
 
-        initial = fdgd._checks._check_arguments(
+        initial = findi._checks._check_arguments(
             initial=initial,
             parameters_used=parameters_used,
             momentum=momentum,
@@ -310,7 +310,7 @@ class FDGD:
                 )
 
         elif threads > 1:
-            fdgd._checks._check_threads(threads, parameters_used)
+            findi._checks._check_threads(threads, parameters_used)
 
             # One set of parameters is needed for each partial derivative used,
             # and one is needed for the base case
@@ -414,9 +414,9 @@ class FDGD:
         :rtype: ndarray
         """
 
-        (h, l, total_epochs) = fdgd._checks._check_iterables(h, l, total_epochs)
+        (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
 
-        initial = fdgd._checks._check_arguments(
+        initial = findi._checks._check_arguments(
             initial=initial,
             partial_epochs=partial_epochs,
             total_epochs=total_epochs,
@@ -473,7 +473,7 @@ class FDGD:
         :rtype: pd.DataFrame
         """
 
-        fdgd._checks._check_arguments(
+        findi._checks._check_arguments(
             outputs=self.outputs,
             parameters=self.parameters,
             constants_values=self.constants_values,

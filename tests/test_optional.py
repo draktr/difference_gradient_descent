@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from fdgd import FDGD
+from findi import GradientDescent
 from optschedule import Schedule
 
 
@@ -9,7 +9,7 @@ def optimizer():
     def foo(params):
         return [(params[0] + 2) ** 2]
 
-    optimizer = FDGD(objective=foo)
+    optimizer = GradientDescent(objective=foo)
 
     return optimizer
 
@@ -20,7 +20,7 @@ def constants_optimizer():
         if permission:
             return [(params[0] + 2) ** 2]
 
-    constants_optimizer = FDGD(objective=loo)
+    constants_optimizer = GradientDescent(objective=loo)
 
     return constants_optimizer
 
@@ -33,7 +33,7 @@ def outputs_optimizer():
             params[0] + params[1] + params[2],
         ]
 
-    outputs_optimizer = FDGD(objective=goo)
+    outputs_optimizer = GradientDescent(objective=goo)
 
     return outputs_optimizer
 
