@@ -119,14 +119,16 @@ def _check_arguments(
     if total_epochs is not None:
         if total_epochs < 1:
             raise ValueError("Number of total epochs should be a positive integer")
-    if not isinstance(parameters, (np.ndarray, type(None))):
-        raise ValueError("Parameters should be of type `np.ndarray`")
-    if not isinstance(constants_values, (np.ndarray, type(None))):
-        raise ValueError("Constants values should be of type `np.ndarray`")
-    if not isinstance(columns, (np.ndarray, list, type(None))):
-        raise ValueError("Columns should be either a list or `np.ndarray`")
+    if not isinstance(outputs, (list, np.ndarray, type(None))):
+        raise ValueError("Outputs should be of type `list` or `np.ndarray`")
+    if not isinstance(parameters, (list, np.ndarray, type(None))):
+        raise ValueError("Parameters should be of type `list` or `np.ndarray`")
+    if not isinstance(constants_values, (list, np.ndarray, type(None))):
+        raise ValueError("Constants values should be of type `list` or `np.ndarray`")
+    if not isinstance(columns, (list, np.ndarray, type(None))):
+        raise ValueError("Columns should be either a `list` or `np.ndarray`")
     if outputs is not None and parameters is not None and columns is not None:
-        if (outputs.shape[1] + parameters.shape[1] + constants_values.shape[0]) != len(
+        if (len(outputs[0]) + len(parameters[0]) + len(constants_values)) != len(
             columns
         ):
             raise ValueError(

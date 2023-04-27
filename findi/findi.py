@@ -411,11 +411,19 @@ def partially_partial_descent(
 
     return outputs, parameters
 
-def values_out(self, columns=None):
+def values_out(outputs, parameters, constants_values=None, columns=None):
     """
     Produces a Pandas DataFrame of objective function outputs and
     parameter values for each epoch of the algorithm.
 
+    :param outputs: Objective function outputs throughout epochs
+    :type outputs: list or ndarray
+    :param parameters: Objective function parameter values throughout epochs
+    :type parameters: list or ndarray
+    :param constants_values: Array with values of constants (for single epoch)
+                             passed to the objective function individually as
+                             keyword arguments to optimizers
+    :type constants_values: list or ndarray
     :param columns: Column names for the DataFrame. Should include
                     names for all the outputs, parameters and
                     constants, defaults to None
@@ -426,28 +434,28 @@ def values_out(self, columns=None):
     """
 
     findi._checks._check_arguments(
-        outputs=self.outputs,
-        parameters=self.parameters,
-        constants_values=self.constants_values,
+        outputs=outputs,
+        parameters=parameters,
+        constants_values=constants_values,
         columns=columns,
     )
 
-    if self.constants_values.shape[0] != 0:
+    if len(constants_values) == 0 or constants_values is None:
+        inputs = parameters
+    else:
         inputs = np.concatenate(
             [
-                self.parameters,
+                parameters,
                 np.full(
-                    (self.parameters.shape[0], self.constants_values.shape[0]),
-                    self.constants_values,
+                    (len(parameters), len(constants_values)),
+                    constants_values,
                 ),
             ],
             axis=1,
         )
-    else:
-        inputs = self.parameters
 
     values = pd.DataFrame(
-        np.column_stack((self.outputs, inputs)),
+        np.column_stack((outputs, inputs)),
         columns=columns,
     )
 
