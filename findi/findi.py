@@ -27,16 +27,10 @@ import findi._checks
 
 
 class GradientDescent:
-    def __init__(self, objective):
+    def __init__(self):
         """
         Initializes Finite Difference Gradient Descent optimizer.
-
-        :param objective: Objective function to minimize
-        :type objective: Function
         """
-
-        findi._checks._check_objective(objective)
-        self.objective = objective
 
         self._outputs = None
         self._parameters = None
@@ -77,7 +71,6 @@ class GradientDescent:
         epoch,
         parameters,
     ):
-
         velocity = (
             momentum * velocity
             - rate * (difference_objective - outputs[epoch, 0]) / difference
@@ -88,6 +81,7 @@ class GradientDescent:
 
     def descent(
         self,
+        objective,
         initial,
         h,
         l,
@@ -101,6 +95,8 @@ class GradientDescent:
         of infinitesimal differential. Allows for the implementation of gradient
         descent algorithm on variety of non-standard functions.
 
+        :param objective: Objective function to minimize
+        :type objective: callable
         :param initial: Initial values of objective function parameters
         :type initial: int, float, list or ndarray
         :param h: Small change(s) in `x`. Can be a sequence or a number
@@ -120,12 +116,12 @@ class GradientDescent:
         :rtype: ndarray
         """
 
+        findi._checks._check_objective(objective)
         (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
-
         initial = findi._checks._check_arguments(initial, momentum, threads)
 
         n_parameters = initial.shape[0]
-        n_outputs = len(self.objective(initial, **constants))
+        n_outputs = len(objective(initial, **constants))
         outputs = np.zeros([epochs, n_outputs])
         parameters = np.zeros([epochs + 1, n_parameters])
         parameters[0] = initial
@@ -134,10 +130,9 @@ class GradientDescent:
 
         if threads == 1:
             for epoch, (rate, difference) in enumerate(zip(l, h)):
-
                 # Evaluating the objective function that will count as
                 # the "official" one for this epoch
-                outputs[epoch] = self.objective(parameters[epoch], **constants)
+                outputs[epoch] = objective(parameters[epoch], **constants)
 
                 # Objective function is evaluated for every (differentiated) parameter
                 # because we need it to calculate partial derivatives
@@ -147,7 +142,7 @@ class GradientDescent:
                         current_parameters[parameter] + difference
                     )
 
-                    difference_objective[parameter] = self.objective(
+                    difference_objective[parameter] = objective(
                         current_parameters, **constants
                     )[0]
 
@@ -179,7 +174,7 @@ class GradientDescent:
                     )
 
                 parallel_outputs = Parallel(n_jobs=threads)(
-                    delayed(self.objective)(i, **constants) for i in current_parameters
+                    delayed(objective)(i, **constants) for i in current_parameters
                 )
 
                 # This objective function evaluation will be used as the
@@ -209,6 +204,7 @@ class GradientDescent:
 
     def partial_descent(
         self,
+        objective,
         initial,
         h,
         l,
@@ -226,6 +222,8 @@ class GradientDescent:
         Allows for the implementation of gradient descent algorithm on
         variety of non-standard functions.
 
+        :param objective: Objective function to minimize
+        :type objective: callable
         :param initial: Initial values of objective function parameters
         :type initial: int, float, list or ndarray
         :param h: Small change(s) in `x`. Can be a sequence or a number
@@ -252,8 +250,8 @@ class GradientDescent:
         :rtype: ndarray
         """
 
+        findi._checks._check_objective(objective)
         (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
-
         initial = findi._checks._check_arguments(
             initial=initial,
             parameters_used=parameters_used,
@@ -263,7 +261,7 @@ class GradientDescent:
         )
 
         n_parameters = initial.shape[0]
-        n_outputs = len(self.objective(initial, **constants))
+        n_outputs = len(objective(initial, **constants))
         outputs = np.zeros([epochs, n_outputs])
         parameters = np.zeros([epochs + 1, n_parameters])
         parameters[0] = initial
@@ -277,7 +275,7 @@ class GradientDescent:
 
                 # Evaluating the objective function that will count as
                 # the "official" one for this epoch
-                outputs[epoch] = self.objective(parameters[epoch], **constants)
+                outputs[epoch] = objective(parameters[epoch], **constants)
 
                 # Objective function is evaluated only for random parameters because we need it
                 # to calculate partial derivatives, while limiting computational expense
@@ -288,7 +286,7 @@ class GradientDescent:
                             current_parameters[parameter] + difference
                         )
 
-                        difference_objective[parameter] = self.objective(
+                        difference_objective[parameter] = objective(
                             current_parameters, **constants
                         )[0]
                     else:
@@ -330,7 +328,7 @@ class GradientDescent:
                         )
 
                 parallel_outputs = Parallel(n_jobs=threads)(
-                    delayed(self.objective)(i, **constants)
+                    delayed(objective)(i, **constants)
                     for i in current_parameters[
                         np.append(np.array([0]), np.add(param_idx, 1))
                     ]
@@ -367,6 +365,7 @@ class GradientDescent:
 
     def partially_partial_descent(
         self,
+        objective,
         initial,
         h,
         l,
@@ -383,6 +382,8 @@ class GradientDescent:
         epochs and regular Finite Difference Gradient Descent for the rest of the
         epochs (i.e. `total_epochs`-`partial_epochs`).
 
+        :param objective: Objective function to minimize
+        :type objective: callable
         :param initial: Initial values of objective function parameters
         :type initial: int, float, list or ndarray
         :param h: Small change(s) in `x`. Can be a sequence or a number
@@ -415,7 +416,6 @@ class GradientDescent:
         """
 
         (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
-
         initial = findi._checks._check_arguments(
             initial=initial,
             partial_epochs=partial_epochs,
@@ -427,6 +427,7 @@ class GradientDescent:
         )
 
         outputs_p, parameters_p = self.partial_descent(
+            objective,
             initial,
             h[:partial_epochs],
             l[:partial_epochs],
@@ -439,6 +440,7 @@ class GradientDescent:
         )
 
         outputs_r, parameters_r = self.descent(
+            objective=objective
             initial=parameters_p[-1],
             h=h[partial_epochs:],
             l=l[partial_epochs:],
