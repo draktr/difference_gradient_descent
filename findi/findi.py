@@ -1,23 +1,22 @@
 """
-The ``findi`` houses ``GradientDescent`` class that optimizes objective
+The ``findi`` houses functions that optimizes objective
 functions via Gradient Descent Algorithm variation that uses
 finite difference instead of infinitesimal differential for
 computing derivatives. This approach allows for the application
 of Gradient Descent on non-differentiable functions, functions
 without analytic form or any other function, as long as it can
-be evaluated. `partial_descent` method allow for computing only a
-random subset of gradients.  `partially_partial_descent` method
-performs `partial_descent` algorithm for the first `partial_epochs`
-number of epochs and `descent` (regular finite difference gradient
-descent algorithm) for the rest of the epochs. Parallel computing
-for performance benefits is supported in all of these methods.
-Furthermore, objective functions with multiple outputs are
-supported (though, only the first one is taken as objective
-value to be minimized), as well as constant objective function
-quasi-hyperparameters that are held constant throughout the epochs.
-
-:return: Objective function outputs and parameters for each epoch
-:rtype: ndarray
+be evaluated. `descent` function performs regular finite difference
+gradient descent algorithm, while `partial_descent` function allow
+a version of finite difference gradient descent algorithm where
+only a random subset of gradients is used in each epoch.
+`partially_partial_descent` function performs `partial_descent`
+algorithm for the first `partial_epochs` number of epochs and `descent`
+for the rest of the epochs. Parallel computing for performance benefits
+is supported in all of these functions. Furthermore, objective functions
+with multiple outputs are supported (only the first one is taken as
+objective value to be minimized), as well as constant objective
+function quasi-hyperparameters that are held constant throughout
+the epochs.
 """
 
 import numpy as np
@@ -43,6 +42,7 @@ def _update(
     updated_parameters = parameters[epoch] + velocity
 
     return updated_parameters
+
 
 def descent(
     objective,
@@ -161,6 +161,7 @@ def descent(
             )
 
     return outputs, parameters
+
 
 def partial_descent(
     objective,
@@ -318,6 +319,7 @@ def partial_descent(
 
     return outputs, parameters
 
+
 def partially_partial_descent(
     objective,
     initial,
@@ -394,7 +396,7 @@ def partially_partial_descent(
     )
 
     outputs_r, parameters_r = descent(
-        objective=objective
+        objective=objective,
         initial=parameters_p[-1],
         h=h[partial_epochs:],
         l=l[partial_epochs:],
@@ -411,10 +413,11 @@ def partially_partial_descent(
 
     return outputs, parameters
 
+
 def values_out(outputs, parameters, constants_values=None, columns=None):
     """
-    Produces a Pandas DataFrame of objective function outputs and
-    parameter values for each epoch of the algorithm.
+    Produces a Pandas DataFrame of objective function outputs, parameter
+    values and constants values for each epoch of the algorithm.
 
     :param outputs: Objective function outputs throughout epochs
     :type outputs: list or ndarray
