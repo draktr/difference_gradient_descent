@@ -147,7 +147,7 @@ class GradientDescent:
                     )[0]
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch + 1] = self._update(
+                parameters[epoch + 1] = _update(
                     rate,
                     difference_objective,
                     outputs,
@@ -185,7 +185,7 @@ class GradientDescent:
                 )
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch + 1] = self._update(
+                parameters[epoch + 1] = _update(
                     rate,
                     difference_objective,
                     outputs,
@@ -296,7 +296,7 @@ class GradientDescent:
                         difference_objective[parameter] = outputs[epoch, 0]
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch + 1] = self._update(
+                parameters[epoch + 1] = _update(
                     rate,
                     difference_objective,
                     outputs,
@@ -346,7 +346,7 @@ class GradientDescent:
                 )
 
                 # These parameters will be used for the evaluation in the next epoch
-                parameters[epoch + 1] = self._update(
+                parameters[epoch + 1] = _update(
                     rate,
                     difference_objective,
                     outputs,
@@ -426,7 +426,7 @@ class GradientDescent:
             rng_seed=rng_seed,
         )
 
-        outputs_p, parameters_p = self.partial_descent(
+        outputs_p, parameters_p = partial_descent(
             objective,
             initial,
             h[:partial_epochs],
@@ -439,7 +439,7 @@ class GradientDescent:
             **constants,
         )
 
-        outputs_r, parameters_r = self.descent(
+        outputs_r, parameters_r = descent(
             objective=objective
             initial=parameters_p[-1],
             h=h[partial_epochs:],
