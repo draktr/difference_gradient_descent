@@ -121,8 +121,16 @@ def _check_arguments(
             raise ValueError("Number of total epochs should be a positive integer")
     if not isinstance(outputs, (list, np.ndarray, type(None))):
         raise ValueError("Outputs should be of type `list` or `np.ndarray`")
+    try:
+        len_outputs = len(outputs[1])
+    except TypeError:
+        len_outputs = 1
     if not isinstance(parameters, (list, np.ndarray, type(None))):
         raise ValueError("Parameters should be of type `list` or `np.ndarray`")
+    try:
+        len_parameters = len(parameters[0])
+    except TypeError:
+        len_parameters = 1
     if not isinstance(constants_values, (list, np.ndarray, type(None))):
         raise ValueError("Constants values should be of type `list` or `np.ndarray`")
     if not isinstance(columns, (list, np.ndarray, type(None))):
@@ -133,14 +141,12 @@ def _check_arguments(
         and constants_values is not None
         and columns is not None
     ):
-        if (len(outputs[0]) + len(parameters[0]) + len(constants_values)) != len(
-            columns
-        ):
+        if (len_outputs + len_parameters + len(constants_values)) != len(columns):
             raise ValueError(
                 "Number of column names given in `columns` doesn't match the combined number of outputs, parameters and constants"
             )
     elif outputs is not None and parameters is not None and columns is not None:
-        if (len(outputs[0]) + len(parameters[0])) != len(columns):
+        if (len_outputs + len_parameters) != len(columns):
             raise ValueError(
                 "Number of column names given in `columns` doesn't match the combined number of outputs and parameters"
             )
