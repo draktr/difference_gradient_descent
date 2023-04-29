@@ -127,12 +127,22 @@ def _check_arguments(
         raise ValueError("Constants values should be of type `list` or `np.ndarray`")
     if not isinstance(columns, (list, np.ndarray, type(None))):
         raise ValueError("Columns should be either a `list` or `np.ndarray`")
-    if outputs is not None and parameters is not None and columns is not None:
+    if (
+        outputs is not None
+        and parameters is not None
+        and constants_values is not None
+        and columns is not None
+    ):
         if (len(outputs[0]) + len(parameters[0]) + len(constants_values)) != len(
             columns
         ):
             raise ValueError(
                 "Number of column names given in `columns` doesn't match the combined number of outputs, parameters and constants"
+            )
+    elif outputs is not None and parameters is not None and columns is not None:
+        if (len(outputs[0]) + len(parameters[0])) != len(columns):
+            raise ValueError(
+                "Number of column names given in `columns` doesn't match the combined number of outputs and parameters"
             )
 
     return initial
