@@ -87,6 +87,7 @@ def _inner_single_descent(
     return outputs, parameters
 
 
+@nb.njit
 def _inner_single_partial(
     objective,
     epoch,
@@ -137,6 +138,8 @@ def _inner_single_partial(
         parameters,
     )
 
+    return outputs, parameters
+
 
 def descent(
     objective,
@@ -178,7 +181,7 @@ def descent(
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum, threads)
 
-    constants = list(constants.values())
+    constants = np.array(list(constants.values()))
     n_parameters = initial.shape[0]
     n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
@@ -301,7 +304,7 @@ def partial_descent(
         rng_seed=rng_seed,
     )
 
-    constants = list(constants.values())
+    constants = np.array(list(constants.values()))
     n_parameters = initial.shape[0]
     n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
