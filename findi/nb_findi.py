@@ -206,7 +206,9 @@ def _inner_multi_partial(
     constants,
     threads,
 ):
-    param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
+    param_idx = np.zeros(parameters_used)
+    for i in range(parameters_used):
+        param_idx[i] = np.random.randint(low=0, high=n_parameters)
 
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
@@ -350,7 +352,6 @@ def partial_descent(
     parameters_used,
     momentum=0,
     threads=1,
-    rng_seed=88,
     **constants,
 ):
     """
@@ -380,10 +381,6 @@ def partial_descent(
     :type momentum: int or float, optional
     :param threads: Number of CPU threads used for computation, defaults to 1
     :type threads: int, optional
-    :param rng_seed: Seed for the random number generator used for
-                        determining which parameters are used in each
-                        epoch for computation of gradients, defaults to 88
-    :type rng_seed: int, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
     """
@@ -395,7 +392,6 @@ def partial_descent(
         parameters_used=parameters_used,
         momentum=momentum,
         threads=threads,
-        rng_seed=rng_seed,
     )
 
     constants = np.array(list(constants.values()))
@@ -405,7 +401,6 @@ def partial_descent(
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
     difference_objective = np.zeros(n_parameters)
-    rng = np.random.default_rng(rng_seed)
     velocity = 0
 
     if threads == 1:
@@ -463,7 +458,6 @@ def partially_partial_descent(
     parameters_used,
     momentum=0,
     threads=1,
-    rng_seed=88,
     **constants,
 ):
     """
@@ -496,10 +490,6 @@ def partially_partial_descent(
     :type momentum: int or float, optional
     :param threads: Number of CPU threads used for computation, defaults to 1
     :type threads: int, optional
-    :param rng_seed: Seed for the random number generator used for determining
-                        which parameters are used in each epoch for computation
-                        of gradients, defaults to 88
-    :type rng_seed: int, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
     """
@@ -512,7 +502,6 @@ def partially_partial_descent(
         parameters_used=parameters_used,
         momentum=momentum,
         threads=threads,
-        rng_seed=rng_seed,
     )
 
     outputs_p, parameters_p = partial_descent(
@@ -524,7 +513,6 @@ def partially_partial_descent(
         parameters_used,
         momentum,
         threads,
-        rng_seed,
         **constants,
     )
 
