@@ -98,11 +98,12 @@ def _inner_single_partial(
     parameters_used,
     momentum,
     velocity,
-    rng,
     n_parameters,
     constants,
 ):
-    param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
+    param_idx = np.zeros(parameters_used)
+    for i in range(parameters_used):
+        param_idx[i] = np.random.randint(low=0, high=n_parameters)
 
     # Evaluating the objective function that will count as
     # the "official" one for this epoch
@@ -177,6 +178,7 @@ def descent(
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum, threads)
 
+    constants = list(constants.values())
     n_parameters = initial.shape[0]
     n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
@@ -299,6 +301,7 @@ def partial_descent(
         rng_seed=rng_seed,
     )
 
+    constants = list(constants.values())
     n_parameters = initial.shape[0]
     n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
@@ -321,7 +324,6 @@ def partial_descent(
                 parameters_used,
                 momentum,
                 velocity,
-                rng,
                 n_parameters,
                 constants,
             )
