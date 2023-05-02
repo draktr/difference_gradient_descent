@@ -141,6 +141,114 @@ def _inner_single_partial(
     return outputs, parameters
 
 
+@nb.njit
+def _inner_multi_descent(
+    objective,
+    epoch,
+    rate,
+    difference,
+    outputs,
+    parameters,
+    difference_objective,
+    current_parameters,
+    momentum,
+    velocity,
+    n_parameters,
+    constants,
+    threads,
+):
+    current_parameters[0] = parameters[epoch]
+    for parameter in range(n_parameters):
+        current_parameters[parameter + 1] = parameters[epoch]
+        current_parameters[parameter + 1, parameter] = (
+            current_parameters[0, parameter] + difference
+        )
+
+    parallel_outputs = Parallel(n_jobs=threads)(
+        delayed(objective)(i, constants) for i in current_parameters
+    )
+
+    # This objective function evaluation will be used as the
+    # "official" one for this epoch
+    outputs[epoch] = parallel_outputs[0]
+    difference_objective = np.array(
+        [parallel_outputs[i][0] for i in range(1, n_parameters + 1)]
+    )
+
+    # These parameters will be used for the evaluation in the next epoch
+    parameters[epoch + 1] = _update(
+        rate,
+        difference_objective,
+        outputs,
+        difference,
+        momentum,
+        velocity,
+        epoch,
+        parameters,
+    )
+
+    return outputs, parameters
+
+
+def _inner_multi_partial(
+    objective,
+    epoch,
+    rate,
+    difference,
+    outputs,
+    parameters,
+    difference_objective,
+    current_parameters,
+    parameters_used,
+    momentum,
+    velocity,
+    n_parameters,
+    constants,
+    threads,
+):
+    param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
+
+    # Objective function is evaluated only for random parameters because we need it
+    # to calculate partial derivatives, while limiting computational expense
+    current_parameters[0] = parameters[epoch]
+    for parameter in range(n_parameters):
+        current_parameters[parameter + 1] = parameters[epoch]
+        if parameter in param_idx:
+            current_parameters[parameter + 1, parameter] = (
+                current_parameters[0, parameter] + difference
+            )
+
+    parallel_outputs = Parallel(n_jobs=threads)(
+        delayed(objective)(i, constants)
+        for i in current_parameters[np.append(np.array([0]), np.add(param_idx, 1))]
+    )
+
+    # This objective function evaluation will be used as the
+    # "official" one for this epoch
+    outputs[epoch] = parallel_outputs[0]
+    # Difference objective value is still recorded (as base
+    # evaluation value) for non-differenced parameters
+    # (in current epoch) for consistency and convenience
+    difference_objective = np.full(n_parameters, parallel_outputs[0][0])
+    difference_objective[param_idx] = np.array(
+        [parallel_outputs[i][0] for i in range(1, parameters_used + 1)]
+    )
+
+    # These parameters will be used for the evaluation in the next epoch
+    parameters[epoch + 1] = _update(
+        rate,
+        difference_objective,
+        outputs,
+        difference,
+        momentum,
+        velocity,
+        epoch,
+        parameters,
+    )
+
+    return outputs, parameters
+
+
 def descent(
     objective,
     initial,
@@ -214,34 +322,20 @@ def descent(
         current_parameters = np.zeros([n_parameters + 1, n_parameters])
 
         for epoch, (rate, difference) in enumerate(zip(l, h)):
-            current_parameters[0] = parameters[epoch]
-            for parameter in range(n_parameters):
-                current_parameters[parameter + 1] = parameters[epoch]
-                current_parameters[parameter + 1, parameter] = (
-                    current_parameters[0, parameter] + difference
-                )
-
-            parallel_outputs = Parallel(n_jobs=threads)(
-                delayed(objective)(i, constants) for i in current_parameters
-            )
-
-            # This objective function evaluation will be used as the
-            # "official" one for this epoch
-            outputs[epoch] = parallel_outputs[0]
-            difference_objective = np.array(
-                [parallel_outputs[i][0] for i in range(1, n_parameters + 1)]
-            )
-
-            # These parameters will be used for the evaluation in the next epoch
-            parameters[epoch + 1] = _update(
+            outputs, parameters = _inner_multi_descent(
+                objective,
+                epoch,
                 rate,
-                difference_objective,
-                outputs,
                 difference,
+                outputs,
+                parameters,
+                difference_objective,
+                current_parameters,
                 momentum,
                 velocity,
-                epoch,
-                parameters,
+                n_parameters,
+                constants,
+                threads,
             )
 
     return outputs, parameters
@@ -339,46 +433,21 @@ def partial_descent(
         current_parameters = np.zeros([n_parameters + 1, n_parameters])
 
         for epoch, (rate, difference) in enumerate(zip(l, h)):
-            param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
-
-            # Objective function is evaluated only for random parameters because we need it
-            # to calculate partial derivatives, while limiting computational expense
-            current_parameters[0] = parameters[epoch]
-            for parameter in range(n_parameters):
-                current_parameters[parameter + 1] = parameters[epoch]
-                if parameter in param_idx:
-                    current_parameters[parameter + 1, parameter] = (
-                        current_parameters[0, parameter] + difference
-                    )
-
-            parallel_outputs = Parallel(n_jobs=threads)(
-                delayed(objective)(i, constants)
-                for i in current_parameters[
-                    np.append(np.array([0]), np.add(param_idx, 1))
-                ]
-            )
-
-            # This objective function evaluation will be used as the
-            # "official" one for this epoch
-            outputs[epoch] = parallel_outputs[0]
-            # Difference objective value is still recorded (as base
-            # evaluation value) for non-differenced parameters
-            # (in current epoch) for consistency and convenience
-            difference_objective = np.full(n_parameters, parallel_outputs[0][0])
-            difference_objective[param_idx] = np.array(
-                [parallel_outputs[i][0] for i in range(1, parameters_used + 1)]
-            )
-
-            # These parameters will be used for the evaluation in the next epoch
-            parameters[epoch + 1] = _update(
+            outputs, parameters = _inner_multi_partial(
+                objective,
+                epoch,
                 rate,
-                difference_objective,
-                outputs,
                 difference,
+                outputs,
+                parameters,
+                difference_objective,
+                current_parameters,
+                parameters_used,
                 momentum,
                 velocity,
-                epoch,
-                parameters,
+                n_parameters,
+                constants,
+                threads,
             )
 
     return outputs, parameters
