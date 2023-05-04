@@ -64,13 +64,15 @@ def _inner_single_descent(
     # the "official" one for this epoch
     outputs[epoch] = objective(parameters[epoch], constants)
 
-    # Objective function is evaluated for every (differentiated) parameter
-    # because we need it to calculate partial derivatives
-    for parameter in range(n_parameters):
-        current_parameters = parameters[epoch]
-        current_parameters[parameter] = current_parameters[parameter] + difference
-
-        difference_objective[parameter] = objective(current_parameters, constants)[0]
+    difference_objective = _single_descent_evaluate(
+        objective,
+        epoch,
+        difference,
+        parameters,
+        difference_objective,
+        n_parameters,
+        constants,
+    )
 
     # These parameters will be used for the evaluation in the next epoch
     parameters[epoch + 1] = _update(
@@ -85,6 +87,27 @@ def _inner_single_descent(
     )
 
     return outputs, parameters
+
+
+@nb.njit(parallel=True)
+def _single_descent_evaluate(
+    objective,
+    epoch,
+    difference,
+    parameters,
+    difference_objective,
+    n_parameters,
+    constants,
+):
+    # Objective function is evaluated for every (differentiated) parameter
+    # because we need it to calculate partial derivatives
+    for parameter in nb.prange(n_parameters):
+        current_parameters = parameters[epoch]
+        current_parameters[parameter] = current_parameters[parameter] + difference
+
+        difference_objective[parameter] = objective(current_parameters, constants)[0]
+
+    return difference_objective
 
 
 @nb.njit
@@ -110,21 +133,17 @@ def _inner_single_partial(
     # the "official" one for this epoch
     outputs[epoch] = objective(parameters[epoch], constants)
 
-    # Objective function is evaluated only for random parameters because we need it
-    # to calculate partial derivatives, while limiting computational expense
-    for parameter in range(n_parameters):
-        if parameter in param_idx:
-            current_parameters = parameters[epoch]
-            current_parameters[parameter] = current_parameters[parameter] + difference
-
-            difference_objective[parameter] = objective(current_parameters, constants)[
-                0
-            ]
-        else:
-            # Difference objective value is still recorded (as base
-            # evaluation value) for non-differenced parameters
-            # (in current epoch) for consistency and convenience
-            difference_objective[parameter] = outputs[epoch, 0]
+    difference_objective = _single_partial_evaluate(
+        objective,
+        epoch,
+        difference,
+        outputs,
+        parameters,
+        difference_objective,
+        n_parameters,
+        param_idx,
+        constants,
+    )
 
     # These parameters will be used for the evaluation in the next epoch
     parameters[epoch + 1] = _update(
@@ -139,6 +158,35 @@ def _inner_single_partial(
     )
 
     return outputs, parameters
+
+
+@nb.njit(parallel=True)
+def _single_partial_evaluate(
+    objective,
+    epoch,
+    difference,
+    outputs,
+    parameters,
+    difference_objective,
+    n_parameters,
+    param_idx,
+    constants,
+):
+    # Objective function is evaluated only for random parameters because we need it
+    # to calculate partial derivatives, while limiting computational expense
+    for parameter in nb.prange(n_parameters):
+        if parameter in param_idx:
+            current_parameters = parameters[epoch]
+            current_parameters[parameter] = current_parameters[parameter] + difference
+
+            difference_objective[parameter] = objective(current_parameters, constants)[
+                0
+            ]
+        else:
+            # Difference objective value is still recorded (as base
+            # evaluation value) for non-differenced parameters
+            # (in current epoch) for consistency and convenience
+            difference_objective[parameter] = outputs[epoch, 0]
 
 
 @nb.njit
@@ -158,14 +206,14 @@ def _inner_multi_descent(
     threads,
 ):
     current_parameters[0] = parameters[epoch]
-    for parameter in range(n_parameters):
-        current_parameters[parameter + 1] = parameters[epoch]
-        current_parameters[parameter + 1, parameter] = (
-            current_parameters[0, parameter] + difference
-        )
-
-    parallel_outputs = Parallel(n_jobs=threads)(
-        delayed(objective)(i, constants) for i in current_parameters
+    parallel_outputs = _multi_descent_evaluate(
+        objective,
+        epoch,
+        difference,
+        parameters,
+        current_parameters,
+        n_parameters,
+        constants,
     )
 
     # This objective function evaluation will be used as the
@@ -190,6 +238,30 @@ def _inner_multi_descent(
     return outputs, parameters
 
 
+@nb.njit(parallel=True)
+def _multi_descent_evaluate(
+    objective,
+    epoch,
+    difference,
+    parameters,
+    current_parameters,
+    n_parameters,
+    constants,
+):
+    for parameter in nb.prange(n_parameters):
+        current_parameters[parameter + 1] = parameters[epoch]
+        current_parameters[parameter + 1, parameter] = (
+            current_parameters[0, parameter] + difference
+        )
+
+    parallel_outputs = Parallel(n_jobs=threads)(
+        delayed(objective)(i, constants) for i in current_parameters
+    )  # TODO: fix this
+
+    return parallel_outputs
+
+
+@nb.njit
 def _inner_multi_partial(
     objective,
     epoch,
@@ -213,16 +285,16 @@ def _inner_multi_partial(
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
     current_parameters[0] = parameters[epoch]
-    for parameter in range(n_parameters):
-        current_parameters[parameter + 1] = parameters[epoch]
-        if parameter in param_idx:
-            current_parameters[parameter + 1, parameter] = (
-                current_parameters[0, parameter] + difference
-            )
 
-    parallel_outputs = Parallel(n_jobs=threads)(
-        delayed(objective)(i, constants)
-        for i in current_parameters[np.append(np.array([0]), np.add(param_idx, 1))]
+    parallel_outputs = _multi_partial_evaluate(
+        objective,
+        epoch,
+        difference,
+        parameters,
+        current_parameters,
+        n_parameters,
+        param_idx,
+        constants,
     )
 
     # This objective function evaluation will be used as the
@@ -249,6 +321,32 @@ def _inner_multi_partial(
     )
 
     return outputs, parameters
+
+
+@nb.njit(parallel=True)
+def _multi_partial_evaluate(
+    objective,
+    epoch,
+    difference,
+    parameters,
+    current_parameters,
+    n_parameters,
+    param_idx,
+    constants,
+):
+    for parameter in nb.prange(n_parameters):
+        current_parameters[parameter + 1] = parameters[epoch]
+        if parameter in param_idx:
+            current_parameters[parameter + 1, parameter] = (
+                current_parameters[0, parameter] + difference
+            )
+
+    parallel_outputs = Parallel(n_jobs=threads)(
+        delayed(objective)(i, constants)
+        for i in current_parameters[np.append(np.array([0]), np.add(param_idx, 1))]
+    )  # TODO: fix this
+
+    return parallel_outputs
 
 
 def descent(
