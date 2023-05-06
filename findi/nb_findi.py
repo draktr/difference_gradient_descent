@@ -372,11 +372,8 @@ def partially_partial_descent(
 
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial = findi._checks._check_arguments(
-        initial=initial,
         partial_epochs=partial_epochs,
         total_epochs=total_epochs,
-        parameters_used=parameters_used,
-        momentum=momentum,
     )
 
     outputs_p, parameters_p = partial_descent(
