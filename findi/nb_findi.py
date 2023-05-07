@@ -71,28 +71,20 @@ def _partial_evaluate(
     objective,
     epoch,
     difference,
-    outputs,
     parameters,
     difference_objective,
-    n_parameters,
     param_idx,
     constants,
 ):
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
-    for parameter in nb.prange(n_parameters):
-        if parameter in param_idx:
-            current_parameters = parameters[epoch]
-            current_parameters[parameter] = current_parameters[parameter] + difference
+    for parameter in nb.prange(param_idx.shape[0]):
+        current_parameters = parameters[epoch]
+        current_parameters[parameter] = current_parameters[parameter] + difference
 
-            difference_objective[parameter] = objective(current_parameters, constants)[
-                0
-            ]
-        else:
-            # Difference objective value is still recorded (as base
-            # evaluation value) for non-differenced parameters
-            # (in current epoch) for consistency and convenience
-            difference_objective[parameter] = outputs[epoch, 0]
+        difference_objective[parameter] = objective(current_parameters, constants)[0]
+
+    return difference_objective
 
 
 @nb.njit
@@ -153,7 +145,7 @@ def _inner_partial(
     n_parameters,
     constants,
 ):
-    param_idx = np.zeros(parameters_used)
+    param_idx = np.zeros(parameters_used, dtype=np.int_)
     for i in range(parameters_used):
         param_idx[i] = np.random.randint(low=0, high=n_parameters)
 
@@ -161,14 +153,16 @@ def _inner_partial(
     # the "official" one for this epoch
     outputs[epoch] = objective(parameters[epoch], constants)
 
+    # Difference objective value is still recorded (as base
+    # evaluation value) for non-differenced parameters
+    # (in current epoch) for consistency and convenience
+    difference_objective = np.repeat(outputs[epoch, 0], n_parameters)
     difference_objective = _partial_evaluate(
         objective,
         epoch,
         difference,
-        outputs,
         parameters,
         difference_objective,
-        n_parameters,
         param_idx,
         constants,
     )
@@ -372,6 +366,7 @@ def partially_partial_descent(
 
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial = findi._checks._check_arguments(
+        initial=initial,
         partial_epochs=partial_epochs,
         total_epochs=total_epochs,
     )
