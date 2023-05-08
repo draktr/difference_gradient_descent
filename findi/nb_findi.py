@@ -143,11 +143,14 @@ def _inner_partial(
     momentum,
     velocity,
     n_parameters,
+    generator,
     constants,
 ):
     param_idx = np.zeros(parameters_used, dtype=np.int_)
-    for i in range(parameters_used):
-        param_idx[i] = np.random.randint(low=0, high=n_parameters)
+    while np.unique(param_idx).shape[0] != param_idx.shape[0]:
+        param_idx = generator.integers(
+            low=0, high=n_parameters, size=parameters_used, dtype=np.int_
+        )
 
     # Evaluating the objective function that will count as
     # the "official" one for this epoch
@@ -254,6 +257,7 @@ def partial_descent(
     epochs,
     parameters_used,
     momentum=0,
+    rng_seed=88,
     **constants,
 ):
     """
@@ -281,6 +285,10 @@ def partial_descent(
     :param momentum: Hyperparameter that dampens oscillations.
                         `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
+    :param rng_seed: Seed for the random number generator used for
+                     determining which parameters are used in each
+                     epoch for computation of gradients, defaults to 88
+    :type rng_seed: int, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
     """
@@ -301,6 +309,7 @@ def partial_descent(
     parameters[0] = initial
     difference_objective = np.zeros(n_parameters)
     velocity = 0
+    generator = np.random.default_rng(rng_seed)
 
     for epoch, (rate, difference) in enumerate(zip(l, h)):
         outputs, parameters = _inner_partial(
@@ -315,6 +324,7 @@ def partial_descent(
             momentum,
             velocity,
             n_parameters,
+            generator,
             constants,
         )
 
@@ -330,6 +340,7 @@ def partially_partial_descent(
     total_epochs,
     parameters_used,
     momentum=0,
+    rng_seed=88,
     **constants,
 ):
     """
@@ -360,6 +371,10 @@ def partially_partial_descent(
     :param momentum: Hyperparameter that dampens oscillations.
                         `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
+    :param rng_seed: Seed for the random number generator used for
+                     determining which parameters are used in each
+                     epoch for computation of gradients, defaults to 88
+    :type rng_seed: int, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
     """
@@ -379,6 +394,7 @@ def partially_partial_descent(
         partial_epochs,
         parameters_used,
         momentum,
+        rng_seed,
         **constants,
     )
 
