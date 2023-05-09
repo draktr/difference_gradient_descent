@@ -64,17 +64,17 @@ def descent(
     :param initial: Initial values of objective function parameters
     :type initial: int, float, list or ndarray
     :param h: Small change(s) in `x`. Can be a sequence or a number
-                in which case constant change is used
+              in which case constant change is used
     :type h: int, float, list or ndarray
     :param l: Learning rate(s). Can be a sequence or a number in which
-                case constant learning rate is used
+              case constant learning rate is used
     :type l: int, float, list or ndarray
     :param epochs: Number of epochs
     :type epochs: int
     :param momentum: Hyperparameter that dampens oscillations.
-                        `momentum=0` implies vanilla algorithm, defaults to 0
+                     `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
-    :param threads: Number of CPU threads used for computation, defaults to 1
+    :param threads: Number of CPU threads used by `joblib` for computation, defaults to 1
     :type threads: int, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
@@ -187,10 +187,10 @@ def partial_descent(
     :param initial: Initial values of objective function parameters
     :type initial: int, float, list or ndarray
     :param h: Small change(s) in `x`. Can be a sequence or a number
-                in which case constant change is used
+              in which case constant change is used
     :type h: int, float, list or ndarray
     :param l: Learning rate(s). Can be a sequence or a number in
-                which case constant learning rate is used
+              which case constant learning rate is used
     :type l: int, float, list or ndarray
     :param epochs: Number of epochs
     :type epochs: int
@@ -198,13 +198,13 @@ def partial_descent(
                             for computation of gradients
     :type parameters_used: int
     :param momentum: Hyperparameter that dampens oscillations.
-                        `momentum=0` implies vanilla algorithm, defaults to 0
+                     `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
-    :param threads: Number of CPU threads used for computation, defaults to 1
+    :param threads: Number of CPU threads used by `joblib` for computation, defaults to 1
     :type threads: int, optional
     :param rng_seed: Seed for the random number generator used for
-                        determining which parameters are used in each
-                        epoch for computation of gradients, defaults to 88
+                     determining which parameters are used in each
+                     epoch for computation of gradients, defaults to 88
     :type rng_seed: int, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
@@ -343,29 +343,29 @@ def partially_partial_descent(
     :param initial: Initial values of objective function parameters
     :type initial: int, float, list or ndarray
     :param h: Small change(s) in `x`. Can be a sequence or a number
-                in which case constant change is used
+              in which case constant change is used
     :type h: int, float, list or ndarray
     :param l: Learning rate(s). Can be a sequence or a number in which
-                case constant learning rate is used
+              case constant learning rate is used
     :type l: int, float, list or ndarray
     :param partial_epochs: Number of epochs for Partial Gradient Descent
     :type partial_epochs: int
     :param total_epochs: Total number of epochs including both for partial
-                            and regular algorithms. Implies that the number of
-                            epochs for the regular algorithm is given as
-                            `total_epochs`-`partial_epochs`
+                         and regular algorithms. Implies that the number of
+                         epochs for the regular algorithm is given as
+                         `total_epochs`-`partial_epochs`
     :type total_epochs: int
     :param parameters_used: Number of parameters used in each epoch for
                             computation of gradients
     :type parameters_used: int
     :param momentum: Hyperparameter that dampens oscillations.
-                        `momentum=0` implies vanilla algorithm, defaults to 0
+                     `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
-    :param threads: Number of CPU threads used for computation, defaults to 1
+    :param threads: Number of CPU threads used by `joblib` for computation, defaults to 1
     :type threads: int, optional
     :param rng_seed: Seed for the random number generator used for determining
-                        which parameters are used in each epoch for computation
-                        of gradients, defaults to 88
+                     which parameters are used in each epoch for computation
+                     of gradients, defaults to 88
     :type rng_seed: int, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
@@ -426,7 +426,7 @@ def values_out(outputs, parameters, columns=None, **constants):
     :param columns: Column names of outputs and parameters, defaults to None
     :type columns: list or ndarray, optional
     :return: Dataframe of all the values of inputs and outputs of
-                the objective function for each epoch
+             the objective function for each epoch
     :rtype: pd.DataFrame
     """
 
