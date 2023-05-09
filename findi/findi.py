@@ -4,27 +4,27 @@ from findi import _numba_findi
 
 def descent(numba=False):
     if not numba:
-        outputs, parameters = _python_findi.descent()
+        outputs, parameters = _python_findi._python_descent()
     elif numba:
-        outputs, parameters = _numba_findi.descent()
+        outputs, parameters = _numba_findi._numba_descent()
 
     return outputs, parameters
 
 
 def partial_descent(numba=False):
     if not numba:
-        outputs, parameters = _python_findi.partial_descent()
+        outputs, parameters = _python_findi._python_partial_descent()
     elif numba:
-        outputs, parameters = _numba_findi.partial_descent()
+        outputs, parameters = _numba_findi._numba_partial_descent()
 
     return outputs, parameters
 
 
 def partially_partial_descent(numba=False):
     if not numba:
-        outputs, parameters = _python_findi.partially_partial_descent()
+        outputs, parameters = _python_findi._python_partially_partial_descent()
     elif numba:
-        outputs, parameters = _numba_findi.partially_partial_descent()
+        outputs, parameters = _numba_findi._numba_partially_partial_descent()
 
     return outputs, parameters
 

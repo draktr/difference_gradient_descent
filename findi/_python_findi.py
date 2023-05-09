@@ -5,12 +5,12 @@ finite difference instead of infinitesimal differential for
 computing derivatives. This approach allows for the application
 of Gradient Descent on non-differentiable functions, functions
 without analytic form or any other function, as long as it can
-be evaluated. `descent` function performs regular finite difference
-gradient descent algorithm, while `partial_descent` function allow
+be evaluated. `_python_descent` function performs regular finite difference
+gradient descent algorithm, while `_python_partial_descent` function allow
 a version of finite difference gradient descent algorithm where
 only a random subset of gradients is used in each epoch.
-`partially_partial_descent` function performs `partial_descent`
-algorithm for the first `partial_epochs` number of epochs and `descent`
+`_python_partially_partial_descent` function performs `_python_partial_descent`
+algorithm for the first `partial_epochs` number of epochs and `_python_descent`
 for the rest of the epochs. Parallel computing for performance benefits
 is supported in all of these functions. Furthermore, objective functions
 with multiple outputs are supported (only the first one is taken as
@@ -44,7 +44,7 @@ def _update(
     return updated_parameters
 
 
-def descent(
+def _python_descent(
     objective,
     initial,
     h,
@@ -163,7 +163,7 @@ def descent(
     return outputs, parameters[:-1]
 
 
-def partial_descent(
+def _python_partial_descent(
     objective,
     initial,
     h,
@@ -320,7 +320,7 @@ def partial_descent(
     return outputs, parameters[:-1]
 
 
-def partially_partial_descent(
+def _python_partially_partial_descent(
     objective,
     initial,
     h,
@@ -382,7 +382,7 @@ def partially_partial_descent(
         rng_seed=rng_seed,
     )
 
-    outputs_p, parameters_p = partial_descent(
+    outputs_p, parameters_p = _python_partial_descent(
         objective,
         initial,
         h[:partial_epochs],
@@ -395,7 +395,7 @@ def partially_partial_descent(
         **constants,
     )
 
-    outputs_r, parameters_r = descent(
+    outputs_r, parameters_r = _python_descent(
         objective=objective,
         initial=parameters_p[-1],
         h=h[partial_epochs:],
