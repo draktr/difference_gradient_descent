@@ -29,10 +29,7 @@ def partially_partial_descent(numba=False):
     return outputs, parameters
 
 
-def values_out(numba=False):
-    if not numba:
-        values = _python_findi.values_out()
-    elif numba:
-        values = _numba_findi.values_out()
+def values_out():
+    values = _python_findi.values_out()
 
     return values
