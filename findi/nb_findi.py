@@ -246,7 +246,7 @@ def descent(
             constants,
         )
 
-    return outputs, parameters
+    return outputs, parameters[:-1]
 
 
 def partial_descent(
@@ -328,7 +328,7 @@ def partial_descent(
             constants,
         )
 
-    return outputs, parameters
+    return outputs, parameters[:-1]
 
 
 def partially_partial_descent(
