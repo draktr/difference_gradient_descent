@@ -414,7 +414,7 @@ def partially_partial_descent(
     return outputs, parameters
 
 
-def values_out(outputs, parameters, constants_values=None, columns=None):
+def values_out(outputs, parameters, columns=None, **constants):
     """
     Produces a Pandas DataFrame of objective function outputs, parameter
     values and constants values for each epoch of the algorithm.
@@ -423,13 +423,7 @@ def values_out(outputs, parameters, constants_values=None, columns=None):
     :type outputs: list or ndarray
     :param parameters: Objective function parameter values throughout epochs
     :type parameters: list or ndarray
-    :param constants_values: Array with values of constants (for single epoch)
-                             passed to the objective function individually as
-                             keyword arguments to optimizers
-    :type constants_values: list or ndarray
-    :param columns: Column names for the DataFrame. Should include
-                    names for all the outputs, parameters and
-                    constants, defaults to None
+    :param columns: Column names of outputs and parameters, defaults to None
     :type columns: list or ndarray, optional
     :return: Dataframe of all the values of inputs and outputs of
                 the objective function for each epoch
@@ -439,11 +433,14 @@ def values_out(outputs, parameters, constants_values=None, columns=None):
     findi._checks._check_arguments(
         outputs=outputs,
         parameters=parameters,
-        constants_values=constants_values,
         columns=columns,
     )
+    constants_values = np.array(list(constants.values()))
+    constants_keys = np.array(list(constants.keys()))
+    if columns is None:
+        columns = np.array([], dtype=str)
 
-    if len(constants_values) == 0 or constants_values is None:
+    if len(constants_values) == 0:
         inputs = parameters
     else:
         inputs = np.concatenate(
@@ -456,6 +453,7 @@ def values_out(outputs, parameters, constants_values=None, columns=None):
             ],
             axis=1,
         )
+        columns = np.concatenate((columns, constants_keys), axis=0)
 
     values = pd.DataFrame(
         np.column_stack((outputs, inputs)),
