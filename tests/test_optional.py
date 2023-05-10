@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from findi._python_findi import descent, partial_descent, values_out
+from findi import descent, partial_descent, values_out
 from optschedule import Schedule
 
 
