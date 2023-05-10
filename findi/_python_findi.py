@@ -310,8 +310,8 @@ def values_out(outputs, parameters, columns=None, **constants):
         columns=columns,
     )
 
-    constants_values = np.array(list(constants.values()))
-    constants_keys = np.array(list(constants.keys()))
+    constants_values = np.array(list(constants.values()), dtype=object)
+    constants_keys = np.array(list(constants.keys()), dtype=str)
     if columns is None:
         columns = np.array([], dtype=str)
 
