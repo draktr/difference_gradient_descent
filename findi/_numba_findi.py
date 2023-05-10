@@ -41,7 +41,7 @@ def _descent_evaluate(
     parameters,
     difference_objective,
     n_parameters,
-    constants,
+    *constants,
 ):
     # Objective function is evaluated for every (differentiated) parameter
     # because we need it to calculate partial derivatives
@@ -49,7 +49,7 @@ def _descent_evaluate(
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        difference_objective[parameter] = objective(current_parameters, constants)[0]
+        difference_objective[parameter] = objective(current_parameters, *constants)[0]
 
     return difference_objective
 
@@ -62,7 +62,7 @@ def _partial_evaluate(
     parameters,
     difference_objective,
     param_idx,
-    constants,
+    *constants,
 ):
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
@@ -70,7 +70,7 @@ def _partial_evaluate(
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        difference_objective[parameter] = objective(current_parameters, constants)[0]
+        difference_objective[parameter] = objective(current_parameters, *constants)[0]
 
     return difference_objective
 
@@ -87,11 +87,11 @@ def _inner_descent(
     momentum,
     velocity,
     n_parameters,
-    constants,
+    *constants,
 ):
     # Evaluating the objective function that will count as
     # the "official" one for this epoch
-    outputs[epoch] = objective(parameters[epoch], constants)
+    outputs[epoch] = objective(parameters[epoch], *constants)
 
     difference_objective = _descent_evaluate(
         objective,
@@ -100,7 +100,7 @@ def _inner_descent(
         parameters,
         difference_objective,
         n_parameters,
-        constants,
+        *constants,
     )
 
     # These parameters will be used for the evaluation in the next epoch
@@ -132,7 +132,7 @@ def _inner_partial(
     velocity,
     n_parameters,
     generator,
-    constants,
+    *constants,
 ):
     param_idx = np.zeros(parameters_used, dtype=np.int_)
     while np.unique(param_idx).shape[0] != param_idx.shape[0]:
@@ -142,7 +142,7 @@ def _inner_partial(
 
     # Evaluating the objective function that will count as
     # the "official" one for this epoch
-    outputs[epoch] = objective(parameters[epoch], constants)
+    outputs[epoch] = objective(parameters[epoch], *constants)
 
     # Difference objective value is still recorded (as base
     # evaluation value) for non-differenced parameters
@@ -155,7 +155,7 @@ def _inner_partial(
         parameters,
         difference_objective,
         param_idx,
-        constants,
+        *constants,
     )
 
     # These parameters will be used for the evaluation in the next epoch
@@ -180,15 +180,14 @@ def _numba_descent(
     l,
     epochs,
     momentum=0,
-    **constants,
+    *constants,
 ):
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum)
 
-    constants = np.array(list(constants.values()))
     n_parameters = initial.shape[0]
-    n_outputs = len(objective(initial, constants))
+    n_outputs = len(objective(initial, *constants))
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
@@ -207,7 +206,7 @@ def _numba_descent(
             momentum,
             velocity,
             n_parameters,
-            constants,
+            *constants,
         )
 
     return outputs, parameters[:-1]
@@ -222,7 +221,7 @@ def _numba_partial_descent(
     parameters_used,
     momentum=0,
     rng_seed=88,
-    **constants,
+    *constants,
 ):
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -232,9 +231,8 @@ def _numba_partial_descent(
         momentum=momentum,
     )
 
-    constants = np.array(list(constants.values()))
     n_parameters = initial.shape[0]
-    n_outputs = len(objective(initial, constants))
+    n_outputs = len(objective(initial, *constants))
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
@@ -256,7 +254,7 @@ def _numba_partial_descent(
             velocity,
             n_parameters,
             generator,
-            constants,
+            *constants,
         )
 
     return outputs, parameters[:-1]
@@ -272,7 +270,7 @@ def _numba_partially_partial_descent(
     parameters_used,
     momentum=0,
     rng_seed=88,
-    **constants,
+    *constants,
 ):
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial = findi._checks._check_arguments(
@@ -290,7 +288,7 @@ def _numba_partially_partial_descent(
         parameters_used,
         momentum,
         rng_seed,
-        **constants,
+        *constants,
     )
 
     outputs_r, parameters_r = _numba_descent(
@@ -300,7 +298,7 @@ def _numba_partially_partial_descent(
         l=l[partial_epochs:],
         epochs=(total_epochs - partial_epochs),
         momentum=momentum,
-        **constants,
+        *constants,
     )
 
     outputs = np.append(outputs_p, outputs_r)

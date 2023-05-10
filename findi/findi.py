@@ -30,7 +30,16 @@ from findi import _numba_findi
 
 
 def descent(
-    objective, initial, h, l, epochs, momentum=0, threads=1, numba=False, **constants
+    objective,
+    initial,
+    h,
+    l,
+    epochs,
+    momentum=0,
+    threads=1,
+    numba=False,
+    *numba_constants,
+    **constants,
 ):
     """
     Performs Gradient Descent Algorithm by using finite difference instead
@@ -88,7 +97,7 @@ def descent(
             l,
             epochs,
             momentum,
-            **constants,
+            *numba_constants,
         )
 
     return outputs, parameters
@@ -105,6 +114,7 @@ def partial_descent(
     threads=1,
     rng_seed=88,
     numba=False,
+    *numba_constants,
     **constants,
 ):
     """
@@ -176,7 +186,7 @@ def partial_descent(
             parameters_used,
             momentum,
             rng_seed,
-            **constants,
+            *numba_constants,
         )
 
     return outputs, parameters
@@ -194,6 +204,7 @@ def partially_partial_descent(
     threads=1,
     rng_seed=88,
     numba=False,
+    *numba_constants,
     **constants,
 ):
     """
@@ -270,7 +281,7 @@ def partially_partial_descent(
             parameters_used,
             momentum,
             rng_seed,
-            **constants,
+            *numba_constants,
         )
 
     return outputs, parameters
