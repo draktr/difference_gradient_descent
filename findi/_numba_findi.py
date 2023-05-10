@@ -194,30 +194,6 @@ def _numba_descent(
     momentum=0,
     **constants,
 ):
-    """
-    Performs Gradient Descent Algorithm by using finite difference instead
-    of infinitesimal differential. Allows for the implementation of gradient
-    descent algorithm on variety of non-standard functions.
-
-    :param objective: Objective function to minimize
-    :type objective: callable
-    :param initial: Initial values of objective function parameters
-    :type initial: int, float, list or ndarray
-    :param h: Small change(s) in `x`. Can be a sequence or a number
-              in which case constant change is used
-    :type h: int, float, list or ndarray
-    :param l: Learning rate(s). Can be a sequence or a number in which
-              case constant learning rate is used
-    :type l: int, float, list or ndarray
-    :param epochs: Number of epochs
-    :type epochs: int
-    :param momentum: Hyperparameter that dampens oscillations.
-                     `momentum=0` implies vanilla algorithm, defaults to 0
-    :type momentum: int or float, optional
-    :return: Objective function outputs and parameters for each epoch
-    :rtype: ndarray
-    """
-
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum)
@@ -260,39 +236,6 @@ def _numba_partial_descent(
     rng_seed=88,
     **constants,
 ):
-    """
-    Performs Gradient Descent Algorithm by computing derivatives on only
-    specified number of randomly selected parameters in each epoch and
-    by using finite difference instead of infinitesimal differential.
-    Allows for the implementation of gradient descent algorithm on
-    variety of non-standard functions.
-
-    :param objective: Objective function to minimize
-    :type objective: callable
-    :param initial: Initial values of objective function parameters
-    :type initial: int, float, list or ndarray
-    :param h: Small change(s) in `x`. Can be a sequence or a number
-              in which case constant change is used
-    :type h: int, float, list or ndarray
-    :param l: Learning rate(s). Can be a sequence or a number in
-              which case constant learning rate is used
-    :type l: int, float, list or ndarray
-    :param epochs: Number of epochs
-    :type epochs: int
-    :param parameters_used: Number of parameters used in each epoch
-                            for computation of gradients
-    :type parameters_used: int
-    :param momentum: Hyperparameter that dampens oscillations.
-                     `momentum=0` implies vanilla algorithm, defaults to 0
-    :type momentum: int or float, optional
-    :param rng_seed: Seed for the random number generator used for
-                     determining which parameters are used in each
-                     epoch for computation of gradients, defaults to 88
-    :type rng_seed: int, optional
-    :return: Objective function outputs and parameters for each epoch
-    :rtype: ndarray
-    """
-
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(
@@ -343,42 +286,6 @@ def _numba_partially_partial_descent(
     rng_seed=88,
     **constants,
 ):
-    """
-    Performs Partial Gradient Descent Algorithm for the first `partial_epochs`
-    epochs and regular Finite Difference Gradient Descent for the rest of the
-    epochs (i.e. `total_epochs`-`partial_epochs`).
-
-    :param objective: Objective function to minimize
-    :type objective: callable
-    :param initial: Initial values of objective function parameters
-    :type initial: int, float, list or ndarray
-    :param h: Small change(s) in `x`. Can be a sequence or a number
-              in which case constant change is used
-    :type h: int, float, list or ndarray
-    :param l: Learning rate(s). Can be a sequence or a number in which
-              case constant learning rate is used
-    :type l: int, float, list or ndarray
-    :param partial_epochs: Number of epochs for Partial Gradient Descent
-    :type partial_epochs: int
-    :param total_epochs: Total number of epochs including both for partial
-                         and regular algorithms. Implies that the number of
-                         epochs for the regular algorithm is given as
-                         `total_epochs`-`partial_epochs`
-    :type total_epochs: int
-    :param parameters_used: Number of parameters used in each epoch for
-                            computation of gradients
-    :type parameters_used: int
-    :param momentum: Hyperparameter that dampens oscillations.
-                     `momentum=0` implies vanilla algorithm, defaults to 0
-    :type momentum: int or float, optional
-    :param rng_seed: Seed for the random number generator used for
-                     determining which parameters are used in each
-                     epoch for computation of gradients, defaults to 88
-    :type rng_seed: int, optional
-    :return: Objective function outputs and parameters for each epoch
-    :rtype: ndarray
-    """
-
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial = findi._checks._check_arguments(
         initial=initial,
