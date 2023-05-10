@@ -1,22 +1,10 @@
 """
-The ``findi`` houses functions that optimizes objective
-functions via Gradient Descent Algorithm variation that uses
-finite difference instead of infinitesimal differential for
-computing derivatives. This approach allows for the application
-of Gradient Descent on non-differentiable functions, functions
-without analytic form or any other function, as long as it can
-be evaluated. `_python_descent` function performs regular finite difference
-gradient descent algorithm, while `_python_partial_descent` function allow
-a version of finite difference gradient descent algorithm where
-only a random subset of gradients is used in each epoch.
-`_python_partially_partial_descent` function performs `_python_partial_descent`
-algorithm for the first `partial_epochs` number of epochs and `_python_descent`
-for the rest of the epochs. Parallel computing for performance benefits
-is supported in all of these functions. Furthermore, objective functions
-with multiple outputs are supported (only the first one is taken as
-objective value to be minimized), as well as constant objective
-function quasi-hyperparameters that are held constant throughout
-the epochs.
+Module `_python_findi` stores functions that will be used for optimization
+if the user chooses `numba=False` in public functions stored in `findi` module.
+These are regular `Python` functions that will use `Python` interpreter for
+execution and do not require any particular formating of an objective function.
+Parallelization is possible using the `joblib` library. Detailed docstrings
+are omitted, as they are provided in `findi` module.
 """
 
 import numpy as np
