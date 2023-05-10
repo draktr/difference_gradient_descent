@@ -1,41 +1,23 @@
 import pytest
 import numpy as np
-from findi import GradientDescent
+from findi._python_findi import descent, partial_descent, values_out
 from optschedule import Schedule
 
 
-@pytest.fixture
-def optimizer():
-    def foo(params):
+def foo(params):
+    return [(params[0] + 2) ** 2]
+
+
+def loo(params, permission):
+    if permission:
         return [(params[0] + 2) ** 2]
 
-    optimizer = GradientDescent(objective=foo)
 
-    return optimizer
-
-
-@pytest.fixture
-def constants_optimizer():
-    def loo(params, permission):
-        if permission:
-            return [(params[0] + 2) ** 2]
-
-    constants_optimizer = GradientDescent(objective=loo)
-
-    return constants_optimizer
-
-
-@pytest.fixture
-def outputs_optimizer():
-    def goo(params):
-        return [
-            (params[0] + 2) ** 2 + (params[1] + 3) ** 2 + (params[2] + 1) ** 2,
-            params[0] + params[1] + params[2],
-        ]
-
-    outputs_optimizer = GradientDescent(objective=goo)
-
-    return outputs_optimizer
+def goo(params):
+    return [
+        (params[0] + 2) ** 2 + (params[1] + 3) ** 2 + (params[2] + 1) ** 2,
+        params[0] + params[1] + params[2],
+    ]
 
 
 @pytest.fixture
@@ -47,7 +29,6 @@ def scheduler():
 
 @pytest.fixture
 def differences(scheduler):
-
     differences = scheduler.exponential_decay(initial_value=0.01, decay_rate=0.0005)
 
     return differences
@@ -55,14 +36,14 @@ def differences(scheduler):
 
 @pytest.fixture
 def rates(scheduler):
-
     rates = scheduler.exponential_decay(initial_value=0.01, decay_rate=0.5)
 
     return rates
 
 
-def test_momentum(optimizer, differences, rates):
-    outputs, parameters = optimizer.descent(
+def test_momentum(differences, rates):
+    outputs, parameters = descent(
+        objective=foo,
         initial=[5],
         h=differences,
         l=rates,
@@ -73,8 +54,9 @@ def test_momentum(optimizer, differences, rates):
     assert outputs[-1] <= 0.1
 
 
-def test_rng_seed(optimizer, differences, rates):
-    outputs, parameters = optimizer.partial_descent(
+def test_rng_seed(differences, rates):
+    outputs, parameters = partial_descent(
+        objective=foo,
         initial=[5],
         h=differences,
         l=rates,
@@ -86,15 +68,20 @@ def test_rng_seed(optimizer, differences, rates):
     assert outputs[-1] <= 0.1
 
 
-def test_values_out(optimizer, differences, rates):
-    outputs, parameters = optimizer.descent(
+def test_values_out(differences, rates):
+    outputs, parameters = descent(
+        objective=foo,
         initial=[5],
         h=differences,
         l=rates,
         epochs=1000,
     )
 
-    values = optimizer.values_out(["objective_value", "x_variable"])
+    values = values_out(
+        outputs=outputs,
+        parameters=parameters,
+        columns=["objective_value", "x_variable"],
+    )
 
     assert (
         outputs[-1] <= 0.1
@@ -105,9 +92,9 @@ def test_values_out(optimizer, differences, rates):
     )
 
 
-def test_values_out_constants(constants_optimizer, differences, rates):
-
-    outputs, parameters = constants_optimizer.descent(
+def test_values_out_constants(differences, rates):
+    outputs, parameters = descent(
+        objective=loo,
         initial=[5],
         h=differences,
         l=rates,
@@ -115,8 +102,11 @@ def test_values_out_constants(constants_optimizer, differences, rates):
         permission=True,
     )
 
-    values = constants_optimizer.values_out(
-        ["objective_value", "x_variable", "permission"]
+    values = values_out(
+        outputs=outputs,
+        parameters=parameters,
+        columns=["objective_value", "x_variable"],
+        permission=True,
     )
 
     assert (
@@ -129,22 +119,25 @@ def test_values_out_constants(constants_optimizer, differences, rates):
     )
 
 
-def test_values_out_multiple_outputs(outputs_optimizer, differences, rates):
-    outputs, parameters = outputs_optimizer.descent(
+def test_values_out_multiple_outputs(differences, rates):
+    outputs, parameters = descent(
+        objective=goo,
         initial=[5, 5, 5],
         h=differences,
         l=rates,
         epochs=1000,
     )
 
-    values = outputs_optimizer.values_out(
-        [
+    values = values_out(
+        outputs=outputs,
+        parameters=parameters,
+        columns=[
             "objective_value",
             "additional_output",
             "x_variable",
             "y_variable",
             "z_variable",
-        ]
+        ],
     )
 
     assert (
