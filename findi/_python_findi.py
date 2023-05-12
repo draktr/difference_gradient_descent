@@ -335,4 +335,4 @@ def values_out(outputs, parameters, columns=None, **constants):
         columns=columns,
     )
 
-    return values
+    return values.convert_dtypes()
