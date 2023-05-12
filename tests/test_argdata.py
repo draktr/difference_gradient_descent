@@ -31,6 +31,7 @@ def rates(scheduler):
 
 def test_ints():
     outputs, parameters = descent(
+        objective=foo,
         initial=5,
         h=0.0001,
         l=0.01,
@@ -43,6 +44,7 @@ def test_ints():
 
 def test_floats():
     outputs, parameters = descent(
+        objective=foo,
         initial=5.2,
         h=0.0001,
         l=0.01,
@@ -55,6 +57,7 @@ def test_floats():
 
 def test_lists(differences, rates):
     outputs, parameters = descent(
+        objective=foo,
         initial=[5.2],
         h=list(differences),
         l=list(rates),
@@ -66,6 +69,7 @@ def test_lists(differences, rates):
 
 def test_arrays(differences, rates):
     outputs, parameters = descent(
+        objective=foo,
         initial=np.array([5.2]),
         h=differences,
         l=rates,

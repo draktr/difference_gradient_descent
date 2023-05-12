@@ -30,6 +30,7 @@ def rates(scheduler):
 
 def test_one_thread(differences, rates):
     outputs, parameters = descent(
+        objective=foo,
         initial=[5, 5, 5],
         h=differences,
         l=rates,
@@ -41,6 +42,7 @@ def test_one_thread(differences, rates):
 
 def test_multithread(differences, rates):
     outputs, parameters = descent(
+        objective=foo,
         initial=[5, 5, 5],
         h=differences,
         l=rates,
@@ -53,6 +55,7 @@ def test_multithread(differences, rates):
 
 def test_partial_one_thread(differences, rates):
     outputs, parameters = partial_descent(
+        objective=foo,
         initial=[5, 5, 5],
         h=differences,
         l=rates,
@@ -65,6 +68,7 @@ def test_partial_one_thread(differences, rates):
 
 def test_partial_multithread(differences, rates):
     outputs, parameters = partial_descent(
+        objective=foo,
         initial=[5, 5, 5],
         h=differences,
         l=rates,
