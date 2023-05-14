@@ -1,14 +1,26 @@
 """
-Module `_numba_findi` stores functions that will be used for optimization
-if the user chooses `numba=True` in public functions stored in `findi` module.
-Functions here are optimized for `Numba`'s just-in-time compiler, and relevant
-ones (i.e. `_descent_evaluate()` and `_partial_evaluate()`) are parallelized.
-Their use requires the objective function to also be `Numba`-optimized, however,
-it generally results in significant performance improvements. Detailed docstrings
-are omitted, as they are provided in `findi` module.
+The ``findi`` houses functions that optimizes objective
+functions via Gradient Descent Algorithm variation that uses
+finite difference instead of infinitesimal differential for
+computing derivatives. This approach allows for the application
+of Gradient Descent on non-differentiable functions, functions
+without analytic form or any other function, as long as it can
+be evaluated. `_numba_descent` function performs regular finite difference
+gradient descent algorithm, while `_numba_partial_descent` function allow
+a version of finite difference gradient descent algorithm where
+only a random subset of gradients is used in each epoch.
+`partially_partial_descent` function performs `_numba_partial_descent`
+algorithm for the first `partial_epochs` number of epochs and `_numba_descent`
+for the rest of the epochs. Parallel computing for performance benefits
+is supported in all of these functions. Furthermore, objective functions
+with multiple outputs are supported (only the first one is taken as
+objective value to be minimized), as well as constant objective
+function quasi-hyperparameters that are held constant throughout
+the epochs.
 """
 
 import numpy as np
+import pandas as pd
 import numba as nb
 import findi._checks
 
