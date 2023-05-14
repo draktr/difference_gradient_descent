@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import pandas as pd
 from findi import descent, partial_descent, values_out
 from optschedule import Schedule
 
@@ -108,14 +109,14 @@ def test_values_out_constants(differences, rates):
         columns=["objective_value", "x_variable", "permission"],
         constants=[True],
     )
+    values.replace([np.inf, -np.inf], np.nan)
 
     assert (
         outputs[-1] <= 0.1
         and values.columns[0] == "objective_value"
         and values.columns[1] == "x_variable"
         and values.columns[2] == "permission"
-        and not np.all(np.isnan(values))
-        and not np.all(np.isinf(values))
+        and not np.all(pd.isna(values))
     )
 
 
