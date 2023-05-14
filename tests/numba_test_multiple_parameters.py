@@ -5,7 +5,7 @@ from optschedule import Schedule
 
 
 @nb.njit
-def foo(params):
+def foo(params, constants):
     return [(params[0] + 2) ** 2 + (params[1] + 3) ** 2 + (params[2] + 1) ** 2]
 
 

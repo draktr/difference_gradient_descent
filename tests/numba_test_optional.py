@@ -6,7 +6,7 @@ from optschedule import Schedule
 
 
 @nb.njit
-def foo(params):
+def foo(params, constants):
     return [(params[0] + 2) ** 2]
 
 
@@ -17,7 +17,7 @@ def loo(params, permission):
 
 
 @nb.njit
-def goo(params):
+def goo(params, constants):
     return [
         (params[0] + 2) ** 2 + (params[1] + 3) ** 2 + (params[2] + 1) ** 2,
         params[0] + params[1] + params[2],
@@ -96,13 +96,13 @@ def test_values_out(differences, rates):
 
 def test_values_out_constants(differences, rates):
     outputs, parameters = descent(
-        True,
         objective=loo,
         initial=[5],
         h=differences,
         l=rates,
         epochs=1000,
         numba=True,
+        constants=[True],
     )
 
     values = values_out(

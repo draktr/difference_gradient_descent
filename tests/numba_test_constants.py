@@ -33,13 +33,13 @@ def rates(scheduler):
 
 def test_descent(differences, rates):
     outputs, parameters = descent(
-        True,
         objective=foo,
         initial=[5, 5],
         h=differences,
         l=rates,
         epochs=1000,
         numba=True,
+        constants=[True],
     )
 
     assert outputs[-1] <= 0.1
@@ -47,7 +47,6 @@ def test_descent(differences, rates):
 
 def test_partial(differences, rates):
     outputs, parameters = partial_descent(
-        True,
         objective=foo,
         initial=[5, 5],
         h=differences,
@@ -55,6 +54,7 @@ def test_partial(differences, rates):
         epochs=1000,
         parameters_used=1,
         numba=True,
+        constants=[True],
     )
 
     assert outputs[-1] <= 0.1

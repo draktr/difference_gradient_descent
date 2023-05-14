@@ -36,7 +36,7 @@ def test_one_thread(differences, rates):
         h=differences,
         l=rates,
         epochs=1000,
-        permission=True,
+        constants=[True],
     )
 
     assert outputs[-1] <= 0.1
@@ -50,7 +50,7 @@ def test_multithread(differences, rates):
         l=rates,
         epochs=1000,
         threads=3,
-        permission=True,
+        constants=[True],
     )
 
     assert outputs[-1] <= 0.1
@@ -64,7 +64,7 @@ def test_partial_one_thread(differences, rates):
         l=rates,
         epochs=1000,
         parameters_used=1,
-        permission=True,
+        constants=[True],
     )
 
     assert outputs[-1] <= 0.1
@@ -79,7 +79,7 @@ def test_partial_multithread(differences, rates):
         epochs=1000,
         parameters_used=1,
         threads=2,
-        permission=True,
+        constants=[True],
     )
 
     assert outputs[-1] <= 0.1

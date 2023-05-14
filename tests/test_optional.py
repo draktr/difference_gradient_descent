@@ -4,7 +4,7 @@ from findi import descent, partial_descent, values_out
 from optschedule import Schedule
 
 
-def foo(params):
+def foo(params, constants):
     return [(params[0] + 2) ** 2]
 
 
@@ -13,7 +13,7 @@ def loo(params, permission):
         return [(params[0] + 2) ** 2]
 
 
-def goo(params):
+def goo(params, constants):
     return [
         (params[0] + 2) ** 2 + (params[1] + 3) ** 2 + (params[2] + 1) ** 2,
         params[0] + params[1] + params[2],
@@ -99,14 +99,14 @@ def test_values_out_constants(differences, rates):
         h=differences,
         l=rates,
         epochs=1000,
-        permission=True,
+        constants=[True],
     )
 
     values = values_out(
         outputs=outputs,
         parameters=parameters,
-        columns=["objective_value", "x_variable"],
-        permission=True,
+        columns=["objective_value", "x_variable", "permission"],
+        constants=[True],
     )
 
     assert (
