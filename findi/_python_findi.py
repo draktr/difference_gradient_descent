@@ -307,11 +307,12 @@ def values_out(outputs, parameters, columns=None, constants=None):
     findi._checks._check_arguments(
         outputs=outputs,
         parameters=parameters,
+        constants=constants,
         columns=columns,
     )
 
     if columns is None:
-        columns = np.array([], dtype=str)
+        columns = np.array([], dtype=np.str_)
     if constants is None:
         constants = np.array([])
 
@@ -327,10 +328,11 @@ def values_out(outputs, parameters, columns=None, constants=None):
                 ),
             ],
             axis=1,
+            dtype=np.str_,
         )
 
     values = pd.DataFrame(
-        np.column_stack((outputs, inputs)),
+        np.concatenate((outputs, inputs), axis=1),
         columns=columns,
     )
 

@@ -70,6 +70,7 @@ def _check_arguments(
     total_epochs=None,
     outputs=None,
     parameters=None,
+    constants=None,
     columns=None,
 ):
     if isinstance(initial, (int, float)):
@@ -130,12 +131,21 @@ def _check_arguments(
         len_parameters = len(parameters[0])
     except TypeError:
         len_parameters = 1
+    if not isinstance(constants, (list, np.ndarray, type(None))):
+        raise ValueError("Constants should be of type `list` of `np.ndarray`")
+    if isinstance(constants, type(None)):
+        len_constants = 0
+    elif isinstance(constants, (list, np.ndarray)):
+        len_constants = len(constants)
     if not isinstance(columns, (list, np.ndarray, type(None))):
         raise ValueError("Columns should be either a `list` or `np.ndarray`")
     if outputs is not None and parameters is not None and columns is not None:
-        if (len_outputs + len_parameters) != len(columns):
+        print(f"out {len_outputs}")
+        print(f"param {len_parameters}")
+        print(f"cons {len_constants}")
+        if (len_outputs + len_parameters + len_constants) != len(columns):
             raise ValueError(
-                "Number of column names given in `columns` doesn't match the combined number of outputs and parameters"
+                "Number of column names given in `columns` doesn't match the combined number of outputs, parameters and columns"
             )
 
     return initial
