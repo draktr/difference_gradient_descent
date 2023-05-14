@@ -1,25 +1,44 @@
+"""
+The ``findi`` houses public functions that a user will use to
+for optimization. They wrap functions from `_numba_findi` and
+`_python_findi` modules allowing increased performance and
+flexibility. The functions optimize the `objective` via Gradient
+Descent Algorithm variation that uses finite difference instead
+of infinitesimal differential for computing derivatives. This
+approach allows for the application of Gradient Descent on
+non-differentiable functions, functions without analytic form or
+any other function, as long as it can be evaluated. `descent`
+function performs regular finite difference gradient descent
+algorithm, while `partial_descent` function allow a version of
+finite difference gradient descent algorithm where only a random
+subset of gradients is used in each epoch. `partially_partial_descent`
+function performs `partial_descent` algorithm for the first
+`partial_epochs` number of epochs and `descent` for the rest of
+the epochs.Parallel computing for performance benefits is supported
+in all of these functions. If `numba=True` parallelization is done
+by `Numba`, otherwise it is done by `joblib` library. Objective
+functions with multiple outputs are supported (only the first one
+is taken as objective value to be minimized), as well as constant
+objective function quasi-hyperparameters that are held constant
+throughout the epochs. Furthermore, `values_out` function is
+included for compactly exporting values of outputs, parameters
+and constants for each epoch.
+"""
+
 from findi import _python_findi
 from findi import _numba_findi
 
 
 def descent(
-    objective,
-    initial,
-    h,
-    l,
-    epochs,
-    momentum=0,
-    threads=1,
-    numba=False,
-    *numba_constants,
-    **constants,
+    objective, initial, h, l, epochs, momentum=0, threads=1, numba=False, constants=None
 ):
     """
     Performs Gradient Descent Algorithm by using finite difference instead
     of infinitesimal differential. Allows for the implementation of gradient
     descent algorithm on variety of non-standard functions.
 
-    :param objective: Objective function to minimize
+    :param objective: Objective function to be minimized. If `numba=True`,
+                      `objective` has to be a `Numba` function
     :type objective: callable
     :param initial: Initial values of objective function parameters
     :type initial: int, float, list or ndarray
@@ -34,8 +53,18 @@ def descent(
     :param momentum: Hyperparameter that dampens oscillations.
                      `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
-    :param threads: Number of CPU threads used by `joblib` for computation, defaults to 1
+    :param threads: Number of CPU threads used by `joblib` for computation.
+                    Argument only used when `numba=False`, as in the other
+                    case `Numba` takes case of parallelization, defaults to 1
     :type threads: int, optional
+    :param numba: Whether to use `Numba`'s just-in-time compiler for performance
+                  improvements. If `numba=True` the function provided in argument
+                  `objective` has to be a `Numba` function (i.e. it has to be
+                  decorated with one of the relevant `Numba` decorators such as
+                  `@numba.njit`). For more information refer to `Numba documentation
+                  <https://numba.pydata.org/numba-doc/dev/user/5minguide.html>`__,
+                  defaults to False
+    :type numba: bool, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
     """
@@ -49,7 +78,7 @@ def descent(
             epochs,
             momentum,
             threads,
-            **constants,
+            constants,
         )
     elif numba:
         outputs, parameters = _numba_findi._numba_descent(
@@ -59,7 +88,7 @@ def descent(
             l,
             epochs,
             momentum,
-            *numba_constants,
+            constants,
         )
 
     return outputs, parameters
@@ -76,8 +105,7 @@ def partial_descent(
     threads=1,
     rng_seed=88,
     numba=False,
-    *numba_constants,
-    **constants,
+    constants=None,
 ):
     """
     Performs Gradient Descent Algorithm by computing derivatives on only
@@ -86,7 +114,8 @@ def partial_descent(
     Allows for the implementation of gradient descent algorithm on
     variety of non-standard functions.
 
-    :param objective: Objective function to minimize
+    :param objective: Objective function to be minimized. If `numba=True`,
+                      `objective` has to be a `Numba` function
     :type objective: callable
     :param initial: Initial values of objective function parameters
     :type initial: int, float, list or ndarray
@@ -104,12 +133,22 @@ def partial_descent(
     :param momentum: Hyperparameter that dampens oscillations.
                      `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
-    :param threads: Number of CPU threads used by `joblib` for computation, defaults to 1
+    :param threads: Number of CPU threads used by `joblib` for computation.
+                    Argument only used when `numba=False`, as in the other
+                    case `Numba` takes case of parallelization, defaults to 1
     :type threads: int, optional
     :param rng_seed: Seed for the random number generator used for
                      determining which parameters are used in each
                      epoch for computation of gradients, defaults to 88
     :type rng_seed: int, optional
+    :param numba: Whether to use `Numba`'s just-in-time compiler for performance
+                  improvements. If `numba=True` the function provided in argument
+                  `objective` has to be a `Numba` function (i.e. it has to be
+                  decorated with one of the relevant `Numba` decorators such as
+                  `@numba.njit`). For more information refer to `Numba documentation
+                  <https://numba.pydata.org/numba-doc/dev/user/5minguide.html>`__,
+                  defaults to False
+    :type numba: bool, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
     """
@@ -125,7 +164,7 @@ def partial_descent(
             momentum,
             threads,
             rng_seed,
-            **constants,
+            constants,
         )
     elif numba:
         outputs, parameters = _numba_findi._numba_partial_descent(
@@ -137,7 +176,7 @@ def partial_descent(
             parameters_used,
             momentum,
             rng_seed,
-            *numba_constants,
+            constants,
         )
 
     return outputs, parameters
@@ -155,15 +194,15 @@ def partially_partial_descent(
     threads=1,
     rng_seed=88,
     numba=False,
-    *numba_constants,
-    **constants,
+    constants=None,
 ):
     """
     Performs Partial Gradient Descent Algorithm for the first `partial_epochs`
     epochs and regular Finite Difference Gradient Descent for the rest of the
     epochs (i.e. `total_epochs`-`partial_epochs`).
 
-    :param objective: Objective function to minimize
+    :param objective: Objective function to be minimized. If `numba=True`,
+                      `objective` has to be a `Numba` function
     :type objective: callable
     :param initial: Initial values of objective function parameters
     :type initial: int, float, list or ndarray
@@ -186,12 +225,22 @@ def partially_partial_descent(
     :param momentum: Hyperparameter that dampens oscillations.
                      `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
-    :param threads: Number of CPU threads used by `joblib` for computation, defaults to 1
+    :param threads: Number of CPU threads used by `joblib` for computation.
+                    Argument only used when `numba=False`, as in the other
+                    case `Numba` takes case of parallelization, defaults to 1
     :type threads: int, optional
     :param rng_seed: Seed for the random number generator used for determining
                      which parameters are used in each epoch for computation
                      of gradients, defaults to 88
     :type rng_seed: int, optional
+    :param numba: Whether to use `Numba`'s just-in-time compiler for performance
+                  improvements. If `numba=True` the function provided in argument
+                  `objective` has to be a `Numba` function (i.e. it has to be
+                  decorated with one of the relevant `Numba` decorators such as
+                  `@numba.njit`). For more information refer to `Numba documentation
+                  <https://numba.pydata.org/numba-doc/dev/user/5minguide.html>`__,
+                  defaults to False
+    :type numba: bool, optional
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
     """
@@ -208,7 +257,7 @@ def partially_partial_descent(
             momentum,
             threads,
             rng_seed,
-            **constants,
+            constants,
         )
     elif numba:
         outputs, parameters = _numba_findi._numba_partially_partial_descent(
@@ -221,13 +270,13 @@ def partially_partial_descent(
             parameters_used,
             momentum,
             rng_seed,
-            *numba_constants,
+            constants,
         )
 
     return outputs, parameters
 
 
-def values_out(outputs, parameters, columns=None, **constants):
+def values_out(outputs, parameters, columns=None, constants=None):
     """
     Produces a Pandas DataFrame of objective function outputs, parameter
     values and constants values for each epoch of the algorithm.
@@ -242,6 +291,7 @@ def values_out(outputs, parameters, columns=None, **constants):
              the objective function for each epoch
     :rtype: pd.DataFrame
     """
-    values = _python_findi.values_out(outputs, parameters, columns, **constants)
+
+    values = _python_findi.values_out(outputs, parameters, columns, constants)
 
     return values

@@ -1,22 +1,10 @@
 """
-The ``findi`` houses functions that optimizes objective
-functions via Gradient Descent Algorithm variation that uses
-finite difference instead of infinitesimal differential for
-computing derivatives. This approach allows for the application
-of Gradient Descent on non-differentiable functions, functions
-without analytic form or any other function, as long as it can
-be evaluated. `_python_descent` function performs regular finite difference
-gradient descent algorithm, while `_python_partial_descent` function allow
-a version of finite difference gradient descent algorithm where
-only a random subset of gradients is used in each epoch.
-`_python_partially_partial_descent` function performs `_python_partial_descent`
-algorithm for the first `partial_epochs` number of epochs and `_python_descent`
-for the rest of the epochs. Parallel computing for performance benefits
-is supported in all of these functions. Furthermore, objective functions
-with multiple outputs are supported (only the first one is taken as
-objective value to be minimized), as well as constant objective
-function quasi-hyperparameters that are held constant throughout
-the epochs.
+Module `_python_findi` stores functions that will be used for optimization
+if the user chooses `numba=False` in public functions stored in `findi` module.
+These are regular `Python` functions that will use `Python` interpreter for
+execution and do not require any particular formating of an objective function.
+Parallelization is possible using the `joblib` library. Detailed docstrings
+are omitted, as they are provided in `findi` module.
 """
 
 import numpy as np
@@ -52,14 +40,14 @@ def _python_descent(
     epochs,
     momentum=0,
     threads=1,
-    **constants,
+    constants=None,
 ):
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum, threads)
 
     n_parameters = initial.shape[0]
-    n_outputs = len(objective(initial, **constants))
+    n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
@@ -70,7 +58,7 @@ def _python_descent(
         for epoch, (rate, difference) in enumerate(zip(l, h)):
             # Evaluating the objective function that will count as
             # the "official" one for this epoch
-            outputs[epoch] = objective(parameters[epoch], **constants)
+            outputs[epoch] = objective(parameters[epoch], constants)
 
             # Objective function is evaluated for every (differentiated) parameter
             # because we need it to calculate partial derivatives
@@ -81,7 +69,7 @@ def _python_descent(
                 )
 
                 difference_objective[parameter] = objective(
-                    current_parameters, **constants
+                    current_parameters, constants
                 )[0]
 
             # These parameters will be used for the evaluation in the next epoch
@@ -112,7 +100,7 @@ def _python_descent(
                 )
 
             parallel_outputs = Parallel(n_jobs=threads)(
-                delayed(objective)(i, **constants) for i in current_parameters
+                delayed(objective)(i, constants) for i in current_parameters
             )
 
             # This objective function evaluation will be used as the
@@ -147,7 +135,7 @@ def _python_partial_descent(
     momentum=0,
     threads=1,
     rng_seed=88,
-    **constants,
+    constants=None,
 ):
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -160,7 +148,7 @@ def _python_partial_descent(
     )
 
     n_parameters = initial.shape[0]
-    n_outputs = len(objective(initial, **constants))
+    n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
@@ -174,7 +162,7 @@ def _python_partial_descent(
 
             # Evaluating the objective function that will count as
             # the "official" one for this epoch
-            outputs[epoch] = objective(parameters[epoch], **constants)
+            outputs[epoch] = objective(parameters[epoch], constants)
 
             # Objective function is evaluated only for random parameters because we need it
             # to calculate partial derivatives, while limiting computational expense
@@ -186,7 +174,7 @@ def _python_partial_descent(
                     )
 
                     difference_objective[parameter] = objective(
-                        current_parameters, **constants
+                        current_parameters, constants
                     )[0]
                 else:
                     # Difference objective value is still recorded (as base
@@ -227,7 +215,7 @@ def _python_partial_descent(
                     )
 
             parallel_outputs = Parallel(n_jobs=threads)(
-                delayed(objective)(i, **constants)
+                delayed(objective)(i, constants)
                 for i in current_parameters[
                     np.append(np.array([0]), np.add(param_idx, 1))
                 ]
@@ -270,7 +258,7 @@ def _python_partially_partial_descent(
     momentum=0,
     threads=1,
     rng_seed=88,
-    **constants,
+    constants=None,
 ):
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial = findi._checks._check_arguments(
@@ -293,7 +281,7 @@ def _python_partially_partial_descent(
         momentum,
         threads,
         rng_seed,
-        **constants,
+        constants,
     )
 
     outputs_r, parameters_r = _python_descent(
@@ -304,7 +292,7 @@ def _python_partially_partial_descent(
         epochs=(total_epochs - partial_epochs),
         momentum=momentum,
         threads=threads,
-        **constants,
+        constants=constants,
     )
 
     outputs = np.append(outputs_p, outputs_r)
@@ -315,32 +303,31 @@ def _python_partially_partial_descent(
     return outputs, parameters
 
 
-def values_out(outputs, parameters, columns=None, **constants):
+def values_out(outputs, parameters, columns=None, constants=None):
     findi._checks._check_arguments(
         outputs=outputs,
         parameters=parameters,
         columns=columns,
     )
 
-    constants_values = np.array(list(constants.values()), dtype=object)
-    constants_keys = np.array(list(constants.keys()), dtype=str)
     if columns is None:
         columns = np.array([], dtype=str)
+    if constants is None:
+        constants = np.array([])
 
-    if len(constants_values) == 0:
+    if len(constants) == 0:
         inputs = parameters
     else:
         inputs = np.concatenate(
             [
                 parameters,
                 np.full(
-                    (len(parameters), len(constants_values)),
-                    constants_values,
+                    (len(parameters), len(constants)),
+                    constants,
                 ),
             ],
             axis=1,
         )
-        columns = np.concatenate((columns, constants_keys), axis=0)
 
     values = pd.DataFrame(
         np.column_stack((outputs, inputs)),
