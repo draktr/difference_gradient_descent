@@ -38,9 +38,9 @@ def _python_descent(
     h,
     l,
     epochs,
+    constants=None,
     momentum=0,
     threads=1,
-    constants=None,
 ):
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -132,10 +132,10 @@ def _python_partial_descent(
     l,
     epochs,
     parameters_used,
+    constants=None,
     momentum=0,
     threads=1,
     rng_seed=88,
-    constants=None,
 ):
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -255,10 +255,10 @@ def _python_partially_partial_descent(
     partial_epochs,
     total_epochs,
     parameters_used,
+    constants=None,
     momentum=0,
     threads=1,
     rng_seed=88,
-    constants=None,
 ):
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial = findi._checks._check_arguments(
@@ -272,16 +272,16 @@ def _python_partially_partial_descent(
     )
 
     outputs_p, parameters_p = _python_partial_descent(
-        objective,
-        initial,
-        h[:partial_epochs],
-        l[:partial_epochs],
-        partial_epochs,
-        parameters_used,
-        momentum,
-        threads,
-        rng_seed,
-        constants,
+        objective=objective,
+        initial=initial,
+        h=h[:partial_epochs],
+        l=l[:partial_epochs],
+        epochs=partial_epochs,
+        parameters_used=parameters_used,
+        constants=constants,
+        momentum=momentum,
+        threads=threads,
+        rng_seed=rng_seed,
     )
 
     outputs_r, parameters_r = _python_descent(
@@ -303,7 +303,7 @@ def _python_partially_partial_descent(
     return outputs, parameters
 
 
-def values_out(outputs, parameters, columns=None, constants=None):
+def values_out(outputs, parameters, constants=None, columns=None):
     findi._checks._check_arguments(
         outputs=outputs,
         parameters=parameters,

@@ -173,7 +173,7 @@ def _inner_partial(
     return outputs, parameters
 
 
-def _numba_descent(objective, initial, h, l, epochs, momentum=0, constants=None):
+def _numba_descent(objective, initial, h, l, epochs, constants=None, momentum=0):
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum)
@@ -211,9 +211,9 @@ def _numba_partial_descent(
     l,
     epochs,
     parameters_used,
+    constants=None,
     momentum=0,
     rng_seed=88,
-    constants=None,
 ):
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -260,9 +260,9 @@ def _numba_partially_partial_descent(
     partial_epochs,
     total_epochs,
     parameters_used,
+    constants=None,
     momentum=0,
     rng_seed=88,
-    constants=None,
 ):
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial = findi._checks._check_arguments(
@@ -272,15 +272,15 @@ def _numba_partially_partial_descent(
     )
 
     outputs_p, parameters_p = _numba_partial_descent(
-        objective,
-        initial,
-        h[:partial_epochs],
-        l[:partial_epochs],
-        partial_epochs,
-        parameters_used,
-        momentum,
-        rng_seed,
-        constants,
+        objective=objective,
+        initial=initial,
+        h=h[:partial_epochs],
+        l=l[:partial_epochs],
+        epochs=partial_epochs,
+        parameters_used=parameters_used,
+        constants=constants,
+        momentum=momentum,
+        rng_seed=rng_seed,
     )
 
     outputs_r, parameters_r = _numba_descent(
@@ -289,8 +289,8 @@ def _numba_partially_partial_descent(
         h=h[partial_epochs:],
         l=l[partial_epochs:],
         epochs=(total_epochs - partial_epochs),
-        momentum=momentum,
         constants=constants,
+        momentum=momentum,
     )
 
     outputs = np.append(outputs_p, outputs_r)

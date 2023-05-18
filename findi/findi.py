@@ -30,7 +30,7 @@ from findi import _numba_findi
 
 
 def descent(
-    objective, initial, h, l, epochs, momentum=0, threads=1, numba=False, constants=None
+    objective, initial, h, l, epochs, constants=None, momentum=0, threads=1, numba=False
 ):
     """
     Performs Gradient Descent Algorithm by using finite difference instead
@@ -50,6 +50,9 @@ def descent(
     :type l: int, float, list or ndarray
     :param epochs: Number of epochs
     :type epochs: int
+    :param constants: Constants values used for the evaluation of the objective function
+                      that aren't adjusted in the process of gradient descent, defaults to None
+    :type constants: list or ndarray, optional
     :param momentum: Hyperparameter that dampens oscillations.
                      `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
@@ -76,9 +79,9 @@ def descent(
             h,
             l,
             epochs,
+            constants,
             momentum,
             threads,
-            constants,
         )
     elif numba:
         outputs, parameters = _numba_findi._numba_descent(
@@ -87,8 +90,8 @@ def descent(
             h,
             l,
             epochs,
-            momentum,
             constants,
+            momentum,
         )
 
     return outputs, parameters
@@ -101,11 +104,11 @@ def partial_descent(
     l,
     epochs,
     parameters_used,
+    constants=None,
     momentum=0,
     threads=1,
     rng_seed=88,
     numba=False,
-    constants=None,
 ):
     """
     Performs Gradient Descent Algorithm by computing derivatives on only
@@ -130,6 +133,9 @@ def partial_descent(
     :param parameters_used: Number of parameters used in each epoch
                             for computation of gradients
     :type parameters_used: int
+    :param constants: Constants values used for the evaluation of the objective function
+                      that aren't adjusted in the process of gradient descent, defaults to None
+    :type constants: list or ndarray, optional
     :param momentum: Hyperparameter that dampens oscillations.
                      `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
@@ -161,10 +167,10 @@ def partial_descent(
             l,
             epochs,
             parameters_used,
+            constants,
             momentum,
             threads,
             rng_seed,
-            constants,
         )
     elif numba:
         outputs, parameters = _numba_findi._numba_partial_descent(
@@ -174,9 +180,9 @@ def partial_descent(
             l,
             epochs,
             parameters_used,
+            constants,
             momentum,
             rng_seed,
-            constants,
         )
 
     return outputs, parameters
@@ -190,11 +196,11 @@ def partially_partial_descent(
     partial_epochs,
     total_epochs,
     parameters_used,
+    constants=None,
     momentum=0,
     threads=1,
     rng_seed=88,
     numba=False,
-    constants=None,
 ):
     """
     Performs Partial Gradient Descent Algorithm for the first `partial_epochs`
@@ -222,6 +228,9 @@ def partially_partial_descent(
     :param parameters_used: Number of parameters used in each epoch for
                             computation of gradients
     :type parameters_used: int
+    :param constants: Constants values used for the evaluation of the objective function
+                      that aren't adjusted in the process of gradient descent, defaults to None
+    :type constants: list or ndarray, optional
     :param momentum: Hyperparameter that dampens oscillations.
                      `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
@@ -254,10 +263,10 @@ def partially_partial_descent(
             partial_epochs,
             total_epochs,
             parameters_used,
+            constants,
             momentum,
             threads,
             rng_seed,
-            constants,
         )
     elif numba:
         outputs, parameters = _numba_findi._numba_partially_partial_descent(
@@ -268,15 +277,15 @@ def partially_partial_descent(
             partial_epochs,
             total_epochs,
             parameters_used,
+            constants,
             momentum,
             rng_seed,
-            constants,
         )
 
     return outputs, parameters
 
 
-def values_out(outputs, parameters, columns=None, constants=None):
+def values_out(outputs, parameters, constants=None, columns=None):
     """
     Produces a Pandas DataFrame of objective function outputs, parameter
     values and constants values for each epoch of the algorithm.
@@ -285,6 +294,9 @@ def values_out(outputs, parameters, columns=None, constants=None):
     :type outputs: list or ndarray
     :param parameters: Objective function parameter values throughout epochs
     :type parameters: list or ndarray
+    :param constants: Constants values used for the evaluation of the objective function
+                      that aren't adjusted in the process of gradient descent, defaults to None
+    :type constants: list or ndarray, optional
     :param columns: Column names of outputs and parameters, defaults to None
     :type columns: list or ndarray, optional
     :return: Dataframe of all the values of inputs and outputs of
@@ -292,6 +304,6 @@ def values_out(outputs, parameters, columns=None, constants=None):
     :rtype: pd.DataFrame
     """
 
-    values = _python_findi.values_out(outputs, parameters, columns, constants)
+    values = _python_findi.values_out(outputs, parameters, constants, columns)
 
     return values
