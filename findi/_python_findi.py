@@ -57,7 +57,7 @@ def _python_descent(
     if threads == 1:
         for epoch, (rate, difference) in enumerate(zip(l, h)):
             # Evaluating the objective function that will count as
-            # the "official" one for this epoch
+            # the base evaluation for this epoch
             outputs[epoch] = objective(parameters[epoch], constants)
 
             # Objective function is evaluated for every (differentiated) parameter
@@ -104,7 +104,7 @@ def _python_descent(
             )
 
             # This objective function evaluation will be used as the
-            # "official" one for this epoch
+            # base evaluation for this epoch
             outputs[epoch] = parallel_outputs[0]
             difference_objective = np.array(
                 [parallel_outputs[i][0] for i in range(1, n_parameters + 1)]
@@ -161,7 +161,7 @@ def _python_partial_descent(
             param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
             # Evaluating the objective function that will count as
-            # the "official" one for this epoch
+            # the base evaluation for this epoch
             outputs[epoch] = objective(parameters[epoch], constants)
 
             # Objective function is evaluated only for random parameters because we need it
@@ -222,7 +222,7 @@ def _python_partial_descent(
             )
 
             # This objective function evaluation will be used as the
-            # "official" one for this epoch
+            # base evaluation for this epoch
             outputs[epoch] = parallel_outputs[0]
             # Difference objective value is still recorded (as base
             # evaluation value) for non-differenced parameters

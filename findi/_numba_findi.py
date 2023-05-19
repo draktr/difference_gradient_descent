@@ -90,7 +90,7 @@ def _inner_descent(
     constants,
 ):
     # Evaluating the objective function that will count as
-    # the "official" one for this epoch
+    # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch], constants)
 
     difference_objective = _descent_evaluate(
@@ -141,7 +141,7 @@ def _inner_partial(
         )
 
     # Evaluating the objective function that will count as
-    # the "official" one for this epoch
+    # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch], constants)
 
     # Difference objective value is still recorded (as base
