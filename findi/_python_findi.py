@@ -2,7 +2,7 @@
 Module `_python_findi` stores functions that will be used for optimization
 if the user chooses `numba=False` in public functions stored in `findi` module.
 These are regular `Python` functions that will use `Python` interpreter for
-execution and do not require any particular formating of an objective function.
+evaluation and do not require any particular formatting of an objective function.
 Parallelization is possible using the `joblib` library. Detailed docstrings
 are omitted, as they are provided in `findi` module.
 """
@@ -23,6 +23,8 @@ def _update(
     epoch,
     parameters,
 ):
+    # Updated parameter values
+
     velocity = (
         momentum * velocity
         - rate * (difference_objective - outputs[epoch, 0]) / difference
@@ -42,6 +44,8 @@ def _python_descent(
     momentum=0,
     threads=1,
 ):
+    # Performs the regular Gradient Descent using Python interpreter for evaluation
+
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum, threads)
@@ -137,6 +141,8 @@ def _python_partial_descent(
     threads=1,
     rng_seed=88,
 ):
+    # Performs Partial Gradient Descent using Python interpreter for evaluation
+
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(
@@ -260,6 +266,8 @@ def _python_partially_partial_descent(
     threads=1,
     rng_seed=88,
 ):
+    # Performs Partially Partial Gradient Descent using Python interpreter for evaluation
+
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial = findi._checks._check_arguments(
         initial=initial,

@@ -24,6 +24,8 @@ def _update(
     epoch,
     parameters,
 ):
+    # Updated parameter values
+
     velocity = (
         momentum * velocity
         - rate * (difference_objective - outputs[epoch, 0]) / difference
@@ -43,6 +45,9 @@ def _descent_evaluate(
     n_parameters,
     constants,
 ):
+    # Differences parameters and evaluates the objective at those values
+    # for the regular Gradient Descent
+
     # Objective function is evaluated for every (differentiated) parameter
     # because we need it to calculate partial derivatives
     for parameter in nb.prange(n_parameters):
@@ -64,6 +69,9 @@ def _partial_evaluate(
     param_idx,
     constants,
 ):
+    # Differences parameters and evaluates the objective at those values
+    # for Partial Gradient Descent
+
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
     for parameter in nb.prange(param_idx.shape[0]):
@@ -76,7 +84,7 @@ def _partial_evaluate(
 
 
 @nb.njit
-def _inner_descent(
+def _descent_epoch(
     objective,
     epoch,
     rate,
@@ -89,6 +97,8 @@ def _inner_descent(
     n_parameters,
     constants,
 ):
+    # Evaluates one epoch of the regular Gradient Descent
+
     # Evaluating the objective function that will count as
     # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch], constants)
@@ -119,7 +129,7 @@ def _inner_descent(
 
 
 @nb.njit
-def _inner_partial(
+def _partial_epoch(
     objective,
     epoch,
     rate,
@@ -134,6 +144,8 @@ def _inner_partial(
     generator,
     constants,
 ):
+    # Evaluates one epoch of Partial Gradient Descent
+
     param_idx = np.zeros(parameters_used, dtype=np.int_)
     while np.unique(param_idx).shape[0] != param_idx.shape[0]:
         param_idx = generator.integers(
@@ -174,6 +186,8 @@ def _inner_partial(
 
 
 def _numba_descent(objective, initial, h, l, epochs, constants=None, momentum=0):
+    # Performs the regular Gradient Descent using Numba JIT compiler for evaluation
+
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum)
@@ -187,7 +201,7 @@ def _numba_descent(objective, initial, h, l, epochs, constants=None, momentum=0)
     velocity = 0
 
     for epoch, (rate, difference) in enumerate(zip(l, h)):
-        outputs, parameters = _inner_descent(
+        outputs, parameters = _descent_epoch(
             objective,
             epoch,
             rate,
@@ -215,6 +229,8 @@ def _numba_partial_descent(
     momentum=0,
     rng_seed=88,
 ):
+    # Performs Partial Gradient Descent using Numba JIT compiler for evaluation
+
     findi._checks._check_objective(objective)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(
@@ -233,7 +249,7 @@ def _numba_partial_descent(
     velocity = 0
 
     for epoch, (rate, difference) in enumerate(zip(l, h)):
-        outputs, parameters = _inner_partial(
+        outputs, parameters = _partial_epoch(
             objective,
             epoch,
             rate,
@@ -264,6 +280,8 @@ def _numba_partially_partial_descent(
     momentum=0,
     rng_seed=88,
 ):
+    # Performs Partially Partial Gradient Descent using Numba JIT compiler for evaluation
+
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial = findi._checks._check_arguments(
         initial=initial,
