@@ -185,10 +185,14 @@ def _partial_epoch(
     return outputs, parameters
 
 
-def _numba_descent(objective, initial, h, l, epochs, constants=None, momentum=0):
+def _numba_descent(
+    objective, initial, h, l, epochs, constants=None, momentum=0, numba=True
+):
     # Performs the regular Gradient Descent using Numba JIT compiler for evaluation
 
-    findi._checks._check_objective(objective)
+    objective, n_outputs = findi._checks._check_objective(
+        objective, initial, constants, numba
+    )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum)
 
@@ -228,10 +232,13 @@ def _numba_partial_descent(
     constants=None,
     momentum=0,
     rng_seed=88,
+    numba=True,
 ):
     # Performs Partial Gradient Descent using Numba JIT compiler for evaluation
 
-    findi._checks._check_objective(objective)
+    objective, n_outputs = findi._checks._check_objective(
+        objective, initial, constants, numba
+    )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(
         initial=initial,

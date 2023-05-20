@@ -1,4 +1,5 @@
 import numpy as np
+import numba as nb
 import warnings
 from optschedule import Schedule
 
@@ -41,11 +42,46 @@ def _check_iterables(h, l, epochs):
     return h, l, epochs
 
 
-def _check_objective(objective):
+def _check_objective(objective, parameters, constants, numba):
     if not callable(objective):
         raise ValueError(
             f"Objective function should be a callable. Current objective function type is:{type(objective)}"
         )
+
+    if numba and not isinstance(objective, nb.core.dispatcher.Dispatcher):
+        raise ValueError(
+            "`numba=True`, but the objective is not wrapped by one of the `Numba` `@jit` decorators, (e.g. `numba.jit`, `numba.njit`). If you wish to use `numba=True`, make sure to wrap the ***`Numba` compatible objective function*** by one of the `Numba` `@jit` decorators"
+        )
+
+    try:
+        outputs = objective(parameters, constants)
+    except TypeError:
+        if numba:
+
+            @nb.njit
+            def objective(parameters, constants):
+                return objective(parameters, constants)
+
+        else:
+
+            def objective(parameters, constants):
+                return objective(parameters, constants)
+
+        outputs = objective(parameters, constants)
+
+    if not isinstance(outputs, (list, tuple, np.ndarray)):
+        if numba:
+
+            @nb.njit
+            def objective(parameters, constants):
+                return [objective(parameters, constants)]
+
+        else:
+
+            def objective(parameters, constants):
+                return [objective(parameters, constants)]
+
+    return objective, len(outputs)
 
 
 def _check_threads(threads, parameters):

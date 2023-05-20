@@ -35,23 +35,17 @@ def _update(
 
 
 def _python_descent(
-    objective,
-    initial,
-    h,
-    l,
-    epochs,
-    constants=None,
-    momentum=0,
-    threads=1,
+    objective, initial, h, l, epochs, constants=None, momentum=0, threads=1, numba=False
 ):
     # Performs the regular Gradient Descent using Python interpreter for evaluation
 
-    findi._checks._check_objective(objective)
+    objective, n_outputs = findi._checks._check_objective(
+        objective, initial, constants, numba
+    )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(initial, momentum, threads)
 
     n_parameters = initial.shape[0]
-    n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
@@ -140,10 +134,13 @@ def _python_partial_descent(
     momentum=0,
     threads=1,
     rng_seed=88,
+    numba=False,
 ):
     # Performs Partial Gradient Descent using Python interpreter for evaluation
 
-    findi._checks._check_objective(objective)
+    objective, n_outputs = findi._checks._check_objective(
+        objective, initial, constants, numba
+    )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial = findi._checks._check_arguments(
         initial=initial,
@@ -154,7 +151,6 @@ def _python_partial_descent(
     )
 
     n_parameters = initial.shape[0]
-    n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
