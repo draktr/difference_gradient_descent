@@ -81,23 +81,14 @@ def _check_objective(objective, parameters, constants, numba):
             def objective(parameters, constants):
                 return np.array([objective(parameters, constants)])
 
-    if isinstance(outputs, (list, tuple, nb.typed.List)):
-        if numba:
-            dt = np.zeros(len(outputs))
-            for i, value in enumerate(outputs):
-                dt[i] = (str(value), type(value))
+    if numba and isinstance(outputs, (list, tuple, nb.typed.List)):
+        dt = np.zeros(len(outputs))
+        for i, value in enumerate(outputs):
+            dt[i] = (str(value), type(value))
 
-            @nb.njit
-            def objective(parameters, constants):
-                return np.array(objective(parameters, constants), dtype=dt)
-
-        else:
-            dt = np.zeros(len(outputs))
-            for i, value in enumerate(outputs):
-                dt[i] = (str(value), type(value))
-
-            def objective(parameters, constants):
-                return np.array(objective(parameters, constants), dtype=dt)
+        @nb.njit
+        def objective(parameters, constants):
+            return np.array(objective(parameters, constants), dtype=dt)
 
     return objective, len(outputs)
 
@@ -126,6 +117,7 @@ def _check_arguments(
     parameters=None,
     constants=None,
     columns=None,
+    numba=None,
 ):
     if isinstance(initial, (int, float)):
         initial = np.array([initial])
@@ -196,11 +188,13 @@ def _check_arguments(
 
     if not isinstance(constants, (list, np.ndarray, nb.typed.List, type(None))):
         raise ValueError("Constants should be of type `list` of `np.ndarray`")
-    if isinstance(constants, (list, nb.typed.List)):
+    if numba and isinstance(constants, (list, nb.typed.List)):
         dt = np.zeros(len(constants))
         for i, value in enumerate(constants):
             dt[i] = (str(value), type(value))
         constants = np.array(constants, dtype=dt)
+    elif isinstance(constants, list):
+        constants = np.array(constants)
     if isinstance(constants, type(None)):
         len_constants = 0
     elif isinstance(constants, (list, np.ndarray)):
