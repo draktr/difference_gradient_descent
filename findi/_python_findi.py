@@ -43,7 +43,16 @@ def _python_descent(
         objective, initial, constants, numba
     )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
-    initial, constants = findi._checks._check_arguments(initial, momentum, threads)
+    initial, constants = findi._checks._check_arguments(
+        initial,
+        h=h,
+        l=l,
+        epochs=epochs,
+        constants=constants,
+        momentum=momentum,
+        threads=threads,
+        numba=numba,
+    )
 
     n_parameters = initial.shape[0]
     outputs = np.zeros([epochs, n_outputs])
@@ -144,10 +153,15 @@ def _python_partial_descent(
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
         initial=initial,
+        h=h,
+        l=l,
+        epochs=epochs,
         parameters_used=parameters_used,
+        constants=constants,
         momentum=momentum,
         threads=threads,
         rng_seed=rng_seed,
+        numba=numba,
     )
 
     n_parameters = initial.shape[0]

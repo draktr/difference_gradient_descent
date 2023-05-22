@@ -194,7 +194,15 @@ def _numba_descent(
         objective, initial, constants, numba
     )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
-    initial, constants = findi._checks._check_arguments(initial, momentum)
+    initial, constants = findi._checks._check_arguments(
+        initial=initial,
+        h=h,
+        l=l,
+        epochs=epochs,
+        constants=constants,
+        momentum=momentum,
+        numba=numba,
+    )
 
     n_parameters = initial.shape[0]
     n_outputs = len(objective(initial, constants))
@@ -242,8 +250,14 @@ def _numba_partial_descent(
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
         initial=initial,
+        h=h,
+        l=l,
+        epochs=epochs,
         parameters_used=parameters_used,
+        constants=constants,
         momentum=momentum,
+        rng_seed=rng_seed,
+        numba=numba,
     )
 
     n_parameters = initial.shape[0]
@@ -291,7 +305,6 @@ def _numba_partially_partial_descent(
 
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial, constants = findi._checks._check_arguments(
-        initial=initial,
         partial_epochs=partial_epochs,
         total_epochs=total_epochs,
     )
