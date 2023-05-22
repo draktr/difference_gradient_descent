@@ -12,7 +12,7 @@ def _check_iterables(h, l, epochs):
 
     if isinstance(h, (int, float)):
         h = Schedule(epochs).constant(h)
-    elif isinstance(h, list):
+    elif isinstance(h, (list, nb.typed.List)):
         h = np.asarray(h)
     elif isinstance(h, np.ndarray):
         pass
@@ -23,7 +23,7 @@ def _check_iterables(h, l, epochs):
 
     if isinstance(l, (int, float)):
         l = Schedule(epochs).constant(l)
-    elif isinstance(l, list):
+    elif isinstance(l, (list, nb.typed.List)):
         l = np.asarray(l)
     elif isinstance(l, np.ndarray):
         pass
@@ -60,26 +60,38 @@ def _check_objective(objective, parameters, constants, numba):
 
             @nb.njit
             def objective(parameters, constants):
-                return objective(parameters, constants)
+                return objective(parameters)
 
         else:
 
             def objective(parameters, constants):
-                return objective(parameters, constants)
+                return objective(parameters)
 
         outputs = objective(parameters, constants)
 
-    if not isinstance(outputs, (list, tuple, np.ndarray)):
+    if not isinstance(outputs, (list, tuple, nb.typed.List, np.ndarray)):
         if numba:
 
             @nb.njit
             def objective(parameters, constants):
-                return [objective(parameters, constants)]
+                return np.array([objective(parameters, constants)])
 
         else:
 
             def objective(parameters, constants):
-                return [objective(parameters, constants)]
+                return np.array([objective(parameters, constants)])
+
+    if isinstance(outputs, (list, tuple, nb.typed.List)):
+        if numba:
+
+            @nb.njit
+            def objective(parameters, constants):
+                return np.array(objective(parameters, constants))
+
+        else:
+
+            def objective(parameters, constants):
+                return np.array(objective(parameters, constants))
 
     return objective, len(outputs)
 
@@ -111,7 +123,7 @@ def _check_arguments(
 ):
     if isinstance(initial, (int, float)):
         initial = np.array([initial])
-    elif isinstance(initial, list):
+    elif isinstance(initial, (list, nb.typed.List)):
         initial = np.asarray(initial)
     elif isinstance(initial, (np.ndarray, type(None))):
         pass
@@ -167,8 +179,13 @@ def _check_arguments(
         len_parameters = len(parameters[0])
     except TypeError:
         len_parameters = 1
-    if not isinstance(constants, (list, np.ndarray, type(None))):
+    if not isinstance(constants, (list, np.ndarray, nb.typed.List, type(None))):
         raise ValueError("Constants should be of type `list` of `np.ndarray`")
+    if isinstance(constants, (list, nb.typed.List)):
+        dt = np.zeros(len(constants))
+        for i, value in enumerate(constants):
+            dt[i] = (str(value), type(value))
+        constants = np.array(constants, dtype=dt)
     if isinstance(constants, type(None)):
         len_constants = 0
     elif isinstance(constants, (list, np.ndarray)):
@@ -181,4 +198,4 @@ def _check_arguments(
                 "Number of column names given in `columns` doesn't match the combined number of outputs, parameters and columns"
             )
 
-    return initial
+    return initial, constants
