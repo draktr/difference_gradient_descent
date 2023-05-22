@@ -83,15 +83,21 @@ def _check_objective(objective, parameters, constants, numba):
 
     if isinstance(outputs, (list, tuple, nb.typed.List)):
         if numba:
+            dt = np.zeros(len(outputs))
+            for i, value in enumerate(outputs):
+                dt[i] = (str(value), type(value))
 
             @nb.njit
             def objective(parameters, constants):
-                return np.array(objective(parameters, constants))
+                return np.array(objective(parameters, constants), dtype=dt)
 
         else:
+            dt = np.zeros(len(outputs))
+            for i, value in enumerate(outputs):
+                dt[i] = (str(value), type(value))
 
             def objective(parameters, constants):
-                return np.array(objective(parameters, constants))
+                return np.array(objective(parameters, constants), dtype=dt)
 
     return objective, len(outputs)
 
