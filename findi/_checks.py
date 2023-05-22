@@ -18,7 +18,7 @@ def _check_iterables(h, l, epochs):
         pass
     else:
         raise ValueError(
-            "Differences should be of type `int`, `float`, `list` or `np.ndarray`"
+            "Differences should be of type `int`, `float`, `list`, `nb.typed.List` or `np.ndarray`"
         )
 
     if isinstance(l, (int, float)):
@@ -29,7 +29,7 @@ def _check_iterables(h, l, epochs):
         pass
     else:
         raise ValueError(
-            "Learning rates should be of type `int`, `float`, `list` or `np.ndarray`"
+            "Learning rates should be of type `int`, `float`, `list`, `nb.typed.List` or `np.ndarray`"
         )
 
     if h.shape[0] != l.shape[0]:
@@ -127,7 +127,7 @@ def _check_arguments(
         pass
     else:
         raise ValueError(
-            "Initial parameters should expressed as either `int`, `float`, `list` or `np.ndarray`"
+            "Initial parameters should expressed as either `int`, `float`, `list`, `nb.typed.List` or `np.ndarray`"
         )
 
     if not isinstance(momentum, (int, float, type(None))):
@@ -187,7 +187,9 @@ def _check_arguments(
         len_parameters = 1
 
     if not isinstance(constants, (list, np.ndarray, nb.typed.List, type(None))):
-        raise ValueError("Constants should be of type `list` of `np.ndarray`")
+        raise ValueError(
+            "Constants should be of type `list`, `nb.typed.List` or `np.ndarray`"
+        )
     if numba and isinstance(constants, (list, nb.typed.List)):
         dt = np.zeros(len(constants))
         for i, value in enumerate(constants):
