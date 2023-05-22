@@ -210,3 +210,10 @@ def _check_arguments(
             )
 
     return initial, constants
+
+
+def _check_numba(numba):
+    if not isinstance(numba, bool):
+        raise ValueError(
+            "`numba` argument specifies whether the algorithm will use `Numba` JIT compiler or Python interpreter, and should be of type `bool`"
+        )

@@ -25,8 +25,7 @@ included for compactly exporting values of outputs, parameters
 and constants for each epoch.
 """
 
-from findi import _python_findi
-from findi import _numba_findi
+from findi import _python_findi, _numba_findi, _checks
 
 
 def descent(
@@ -71,6 +70,8 @@ def descent(
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
     """
+
+    _checks._check_numba(numba=numba)
 
     if not numba:
         outputs, parameters = _python_findi._python_descent(
@@ -158,6 +159,8 @@ def partial_descent(
     :return: Objective function outputs and parameters for each epoch
     :rtype: ndarray
     """
+
+    _checks._check_numba(numba=numba)
 
     if not numba:
         outputs, parameters = _python_findi._python_partial_descent(
