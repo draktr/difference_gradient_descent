@@ -131,26 +131,31 @@ def _check_arguments(
         raise ValueError(
             "Initial parameters should expressed as either `int`, `float`, `list` or `np.ndarray`"
         )
+
     if not isinstance(momentum, (int, float, type(None))):
         raise ValueError("Momentum should be an `int` or a `float`")
     if momentum is not None:
         if momentum < 0:
             raise ValueError("Momentum should be non-negative")
+
     if not isinstance(threads, (int, type(None))):
         raise ValueError("Number of threads should be a positive integer")
     if threads is not None:
         if threads < 1:
             raise ValueError("Number of threads should be a positive integer")
+
     if not isinstance(parameters_used, (int, type(None))):
         raise ValueError("Number of parameters used should be a positive integer")
     if parameters_used is not None:
         if parameters_used < 1:
             raise ValueError("Number of parameters used should be a positive integer")
+
     if not isinstance(rng_seed, (int, type(None))):
         raise ValueError("RNG seed should be a non-negative integer")
     if rng_seed is not None:
         if rng_seed < 0:
             raise ValueError("RNG seed should be a non-negative integer")
+
     if not isinstance(partial_epochs, (int, type(None))):
         raise ValueError("Number of partial epochs should be non-negative integer")
     if partial_epochs is not None:
@@ -162,23 +167,27 @@ def _check_arguments(
                 "Number of partial epochs is 0 (zero). All epochs will be run with regular algorithm",
                 UserWarning,
             )
+
     if not isinstance(total_epochs, (int, type(None))):
         raise ValueError("Number of total epochs should be a positive integer")
     if total_epochs is not None:
         if total_epochs < 1:
             raise ValueError("Number of total epochs should be a positive integer")
+
     if not isinstance(outputs, (list, np.ndarray, type(None))):
         raise ValueError("Outputs should be of type `list` or `np.ndarray`")
     try:
         len_outputs = len(outputs[1])
     except TypeError:
         len_outputs = 1
+
     if not isinstance(parameters, (list, np.ndarray, type(None))):
         raise ValueError("Parameters should be of type `list` or `np.ndarray`")
     try:
         len_parameters = len(parameters[0])
     except TypeError:
         len_parameters = 1
+
     if not isinstance(constants, (list, np.ndarray, nb.typed.List, type(None))):
         raise ValueError("Constants should be of type `list` of `np.ndarray`")
     if isinstance(constants, (list, nb.typed.List)):
@@ -190,8 +199,10 @@ def _check_arguments(
         len_constants = 0
     elif isinstance(constants, (list, np.ndarray)):
         len_constants = len(constants)
+
     if not isinstance(columns, (list, np.ndarray, type(None))):
         raise ValueError("Columns should be either a `list` or `np.ndarray`")
+
     if outputs is not None and parameters is not None and columns is not None:
         if (len_outputs + len_parameters + len_constants) != len(columns):
             raise ValueError(
