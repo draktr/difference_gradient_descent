@@ -196,9 +196,6 @@ def _numba_descent(
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
         initial=initial,
-        h=h,
-        l=l,
-        epochs=epochs,
         constants=constants,
         momentum=momentum,
         numba=numba,
@@ -250,9 +247,6 @@ def _numba_partial_descent(
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
         initial=initial,
-        h=h,
-        l=l,
-        epochs=epochs,
         parameters_used=parameters_used,
         constants=constants,
         momentum=momentum,
