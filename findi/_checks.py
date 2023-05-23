@@ -55,6 +55,11 @@ def _check_objective(objective, parameters, constants, numba):
 
     try:
         outputs = objective(parameters, constants)
+
+        try:
+            dimensionality = outputs.ndim
+        except AttributeError:
+            dimensionality = 1
     except TypeError:
         if numba:
 
@@ -69,7 +74,15 @@ def _check_objective(objective, parameters, constants, numba):
 
         outputs = objective(parameters, constants)
 
-    if not isinstance(outputs, (list, tuple, nb.typed.List, np.ndarray)):
+        try:
+            dimensionality = outputs.ndim
+        except AttributeError:
+            dimensionality = 1
+
+    if (
+        not isinstance(outputs, (list, tuple, nb.typed.List, np.ndarray))
+        or dimensionality == 0
+    ):
         if numba:
 
             @nb.njit
@@ -81,10 +94,12 @@ def _check_objective(objective, parameters, constants, numba):
             def objective(parameters, constants):
                 return np.array([objective(parameters, constants)])
 
+        outputs = np.array([outputs])
+
     if numba and isinstance(outputs, (list, tuple, nb.typed.List)):
-        dt = np.zeros(len(outputs))
+        dt = list()
         for i, value in enumerate(outputs):
-            dt[i] = (str(value), type(value))
+            dt.append((str(value), str(type(value))[8:-2]))
 
         @nb.njit
         def objective(parameters, constants):
