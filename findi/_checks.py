@@ -1,5 +1,6 @@
 import numpy as np
 import numba as nb
+from inspect import signature
 import warnings
 from optschedule import Schedule
 
@@ -53,59 +54,21 @@ def _check_objective(objective, parameters, constants, numba):
             "`numba=True`, but the objective is not wrapped by one of the `Numba` `@jit` decorators, (e.g. `numba.jit`, `numba.njit`). If you wish to use `numba=True`, make sure to wrap the ***`Numba` compatible objective function*** by one of the `Numba` `@jit` decorators"
         )
 
+    n_arguments = len(signature(objective).parameters)
+    if n_arguments != 2:
+        raise ValueError(
+            "Objective function should take exactly 2 arguments, one for `parameters` and one for `constants` even if constants aren't used"
+        )
+
+    outputs = objective(parameters, constants)
     try:
-        outputs = objective(parameters, constants)
-
-        try:
-            dimensionality = outputs.ndim
-        except AttributeError:
-            dimensionality = 1
+        n_outputs = len(outputs)
     except TypeError:
-        if numba:
+        raise ValueError(
+            "Objective function should return a subscriptable array-like structure (e.g. `np.ndarray`) even if one value is only returned"
+        )
 
-            @nb.njit
-            def objective(parameters, constants):
-                return objective(parameters)
-
-        else:
-
-            def objective(parameters, constants):
-                return objective(parameters)
-
-        outputs = objective(parameters, constants)
-
-        try:
-            dimensionality = outputs.ndim
-        except AttributeError:
-            dimensionality = 1
-
-    if (
-        not isinstance(outputs, (list, tuple, nb.typed.List, np.ndarray))
-        or dimensionality == 0
-    ):
-        if numba:
-
-            @nb.njit
-            def objective(parameters, constants):
-                return np.array([objective(parameters, constants)])
-
-        else:
-
-            def objective(parameters, constants):
-                return np.array([objective(parameters, constants)])
-
-        outputs = np.array([outputs])
-
-    if numba and isinstance(outputs, (list, tuple, nb.typed.List)):
-        dt = list()
-        for i, value in enumerate(outputs):
-            dt.append((str(value), str(type(value))[8:-2]))
-
-        @nb.njit
-        def objective(parameters, constants):
-            return np.array(objective(parameters, constants), dtype=dt)
-
-    return objective, len(outputs)
+    return n_outputs
 
 
 def _check_threads(threads, parameters):
@@ -201,14 +164,14 @@ def _check_arguments(
     except TypeError:
         len_parameters = 1
 
-    if not isinstance(constants, (list, np.ndarray, nb.typed.List, type(None))):
+    if not isinstance(constants, (list, nb.typed.List, np.ndarray, type(None))):
         raise ValueError(
             "Constants should be of type `list`, `nb.typed.List` or `np.ndarray`"
         )
     if numba and isinstance(constants, (list, nb.typed.List)):
-        dt = np.zeros(len(constants))
+        dt = list()
         for i, value in enumerate(constants):
-            dt[i] = (str(value), type(value))
+            dt.append((str(value), str(type(value))[8:-2]))
         constants = np.array(constants, dtype=dt)
     elif isinstance(constants, list):
         constants = np.array(constants)

@@ -39,9 +39,7 @@ def _python_descent(
 ):
     # Performs the regular Gradient Descent using Python interpreter for evaluation
 
-    objective, n_outputs = findi._checks._check_objective(
-        objective, initial, constants, numba
-    )
+    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
         initial,
@@ -144,9 +142,7 @@ def _python_partial_descent(
 ):
     # Performs Partial Gradient Descent using Python interpreter for evaluation
 
-    objective, n_outputs = findi._checks._check_objective(
-        objective, initial, constants, numba
-    )
+    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
         initial=initial,

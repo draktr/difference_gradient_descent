@@ -190,9 +190,7 @@ def _numba_descent(
 ):
     # Performs the regular Gradient Descent using Numba JIT compiler for evaluation
 
-    objective, n_outputs = findi._checks._check_objective(
-        objective, initial, constants, numba
-    )
+    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
         initial=initial,
@@ -202,7 +200,6 @@ def _numba_descent(
     )
 
     n_parameters = initial.shape[0]
-    n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
@@ -241,9 +238,7 @@ def _numba_partial_descent(
 ):
     # Performs Partial Gradient Descent using Numba JIT compiler for evaluation
 
-    objective, n_outputs = findi._checks._check_objective(
-        objective, initial, constants, numba
-    )
+    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
         initial=initial,
@@ -255,7 +250,6 @@ def _numba_partial_descent(
     )
 
     n_parameters = initial.shape[0]
-    n_outputs = len(objective(initial, constants))
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
