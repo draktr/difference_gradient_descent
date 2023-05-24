@@ -39,15 +39,15 @@ def _python_descent(
 ):
     # Performs the regular Gradient Descent using Python interpreter for evaluation
 
-    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
-    (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
-        initial,
+        initial=initial,
         constants=constants,
         momentum=momentum,
         threads=threads,
         numba=numba,
     )
+    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
+    (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
 
     n_parameters = initial.shape[0]
     outputs = np.zeros([epochs, n_outputs])
@@ -142,8 +142,6 @@ def _python_partial_descent(
 ):
     # Performs Partial Gradient Descent using Python interpreter for evaluation
 
-    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
-    (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
     initial, constants = findi._checks._check_arguments(
         initial=initial,
         parameters_used=parameters_used,
@@ -153,6 +151,8 @@ def _python_partial_descent(
         rng_seed=rng_seed,
         numba=numba,
     )
+    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
+    (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
 
     n_parameters = initial.shape[0]
     outputs = np.zeros([epochs, n_outputs])
@@ -268,7 +268,6 @@ def _python_partially_partial_descent(
 ):
     # Performs Partially Partial Gradient Descent using Python interpreter for evaluation
 
-    (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
     initial, constants = findi._checks._check_arguments(
         initial=initial,
         partial_epochs=partial_epochs,
@@ -278,6 +277,7 @@ def _python_partially_partial_descent(
         threads=threads,
         rng_seed=rng_seed,
     )
+    (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
 
     outputs_p, parameters_p = _python_partial_descent(
         objective=objective,
