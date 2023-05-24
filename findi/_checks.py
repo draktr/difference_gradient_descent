@@ -168,16 +168,18 @@ def _check_arguments(
         raise ValueError(
             "Constants should be of type `list`, `nb.typed.List` or `np.ndarray`"
         )
-    if numba and isinstance(constants, (list, nb.typed.List)):
+    if numba and isinstance(constants, list):
         dt = list()
         for i, value in enumerate(constants):
             dt.append((str(value), str(type(value))[8:-2]))
         constants = np.array(constants, dtype=dt)
-    elif isinstance(constants, list):
-        constants = np.array(constants)
+    elif not numba and isinstance(constants, list):
+        constants = np.asarray(constants)
+    elif isinstance(constants, nb.typed.List):
+        constants = np.asarray(constants)
     if isinstance(constants, type(None)):
         len_constants = 0
-    elif isinstance(constants, (list, np.ndarray)):
+    elif isinstance(constants, (list, nb.typed.List, np.ndarray)):
         len_constants = len(constants)
 
     if not isinstance(columns, (list, np.ndarray, type(None))):
