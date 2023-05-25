@@ -22,14 +22,22 @@ is taken as objective value to be minimized), as well as constant
 objective function quasi-hyperparameters that are held constant
 throughout the epochs. Furthermore, `values_out` function is
 included for compactly exporting values of outputs, parameters
-and constants for each epoch.
+and metaparameters for each epoch.
 """
 
 from findi import _python_findi, _numba_findi, _checks
 
 
 def descent(
-    objective, initial, h, l, epochs, constants=None, momentum=0, threads=1, numba=False
+    objective,
+    initial,
+    h,
+    l,
+    epochs,
+    metaparameters=None,
+    momentum=0,
+    threads=1,
+    numba=False,
 ):
     """
     Performs Gradient Descent Algorithm by using finite difference instead
@@ -49,9 +57,10 @@ def descent(
     :type l: int, float, list, nb.typed.List or ndarray
     :param epochs: Number of epochs
     :type epochs: int
-    :param constants: Constants values used for the evaluation of the objective function
-                      that aren't adjusted in the process of gradient descent, defaults to None
-    :type constants: list, nb.typed.List or ndarray, optional
+    :param metaparameters: Metaparameter values used for the evaluation or tuning
+                           of the objective function. These aren't adjusted in the
+                           process of gradient descent, defaults to None
+    :type metaparameters: list, nb.typed.List or ndarray, optional
     :param momentum: Hyperparameter that dampens oscillations.
                      `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
@@ -80,7 +89,7 @@ def descent(
             h,
             l,
             epochs,
-            constants,
+            metaparameters,
             momentum,
             threads,
         )
@@ -91,7 +100,7 @@ def descent(
             h,
             l,
             epochs,
-            constants,
+            metaparameters,
             momentum,
         )
 
@@ -105,7 +114,7 @@ def partial_descent(
     l,
     epochs,
     parameters_used,
-    constants=None,
+    metaparameters=None,
     momentum=0,
     threads=1,
     rng_seed=88,
@@ -134,9 +143,10 @@ def partial_descent(
     :param parameters_used: Number of parameters used in each epoch
                             for computation of gradients
     :type parameters_used: int
-    :param constants: Constants values used for the evaluation of the objective function
-                      that aren't adjusted in the process of gradient descent, defaults to None
-    :type constants: list, nb.typed.List or ndarray, optional
+    :param metaparameters: Metaparameter values used for the evaluation or tuning
+                           of the objective function. These aren't adjusted in the
+                           process of gradient descent, defaults to None
+    :type metaparameters: list, nb.typed.List or ndarray, optional
     :param momentum: Hyperparameter that dampens oscillations.
                      `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
@@ -170,7 +180,7 @@ def partial_descent(
             l,
             epochs,
             parameters_used,
-            constants,
+            metaparameters,
             momentum,
             threads,
             rng_seed,
@@ -183,7 +193,7 @@ def partial_descent(
             l,
             epochs,
             parameters_used,
-            constants,
+            metaparameters,
             momentum,
             rng_seed,
         )
@@ -199,7 +209,7 @@ def partially_partial_descent(
     partial_epochs,
     total_epochs,
     parameters_used,
-    constants=None,
+    metaparameters=None,
     momentum=0,
     threads=1,
     rng_seed=88,
@@ -231,9 +241,10 @@ def partially_partial_descent(
     :param parameters_used: Number of parameters used in each epoch for
                             computation of gradients
     :type parameters_used: int
-    :param constants: Constants values used for the evaluation of the objective function
-                      that aren't adjusted in the process of gradient descent, defaults to None
-    :type constants: list, nb.typed.List or ndarray, optional
+    :param metaparameters: Metaparameter values used for the evaluation or tuning
+                           of the objective function. These aren't adjusted in the
+                           process of gradient descent, defaults to None
+    :type metaparameters: list, nb.typed.List or ndarray, optional
     :param momentum: Hyperparameter that dampens oscillations.
                      `momentum=0` implies vanilla algorithm, defaults to 0
     :type momentum: int or float, optional
@@ -266,7 +277,7 @@ def partially_partial_descent(
             partial_epochs,
             total_epochs,
             parameters_used,
-            constants,
+            metaparameters,
             momentum,
             threads,
             rng_seed,
@@ -280,7 +291,7 @@ def partially_partial_descent(
             partial_epochs,
             total_epochs,
             parameters_used,
-            constants,
+            metaparameters,
             momentum,
             rng_seed,
         )
@@ -288,18 +299,19 @@ def partially_partial_descent(
     return outputs, parameters
 
 
-def values_out(outputs, parameters, constants=None, columns=None):
+def values_out(outputs, parameters, metaparameters=None, columns=None):
     """
     Produces a Pandas DataFrame of objective function outputs, parameter
-    values and constants values for each epoch of the algorithm.
+    values and metaparameter values for each epoch of the algorithm.
 
     :param outputs: Objective function outputs throughout epochs
     :type outputs: list or ndarray
     :param parameters: Objective function parameter values throughout epochs
     :type parameters: list or ndarray
-    :param constants: Constants values used for the evaluation of the objective function
-                      that aren't adjusted in the process of gradient descent, defaults to None
-    :type constants: list, nb.typed.List or ndarray, optional
+    :param metaparameters: Metaparameter values used for the evaluation or tuning
+                           of the objective function. These aren't adjusted in the
+                           process of gradient descent, defaults to None
+    :type metaparameters: list, nb.typed.List or ndarray, optional
     :param columns: Column names of outputs and parameters, defaults to None
     :type columns: list or ndarray, optional
     :return: Dataframe of all the values of inputs and outputs of
@@ -307,6 +319,6 @@ def values_out(outputs, parameters, constants=None, columns=None):
     :rtype: pd.DataFrame
     """
 
-    values = _python_findi.values_out(outputs, parameters, constants, columns)
+    values = _python_findi.values_out(outputs, parameters, metaparameters, columns)
 
     return values

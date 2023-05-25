@@ -35,18 +35,28 @@ def _update(
 
 
 def _python_descent(
-    objective, initial, h, l, epochs, constants=None, momentum=0, threads=1, numba=False
+    objective,
+    initial,
+    h,
+    l,
+    epochs,
+    metaparameters=None,
+    momentum=0,
+    threads=1,
+    numba=False,
 ):
     # Performs the regular Gradient Descent using Python interpreter for evaluation
 
-    initial, constants = findi._checks._check_arguments(
+    initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
-        constants=constants,
+        metaparameters=metaparameters,
         momentum=momentum,
         threads=threads,
         numba=numba,
     )
-    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
+    n_outputs = findi._checks._check_objective(
+        objective, initial, metaparameters, numba
+    )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
 
     n_parameters = initial.shape[0]
@@ -60,7 +70,7 @@ def _python_descent(
         for epoch, (rate, difference) in enumerate(zip(l, h)):
             # Evaluating the objective function that will count as
             # the base evaluation for this epoch
-            outputs[epoch] = objective(parameters[epoch], constants)
+            outputs[epoch] = objective(parameters[epoch], metaparameters)
 
             # Objective function is evaluated for every (differentiated) parameter
             # because we need it to calculate partial derivatives
@@ -71,7 +81,7 @@ def _python_descent(
                 )
 
                 difference_objective[parameter] = objective(
-                    current_parameters, constants
+                    current_parameters, metaparameters
                 )[0]
 
             # These parameters will be used for the evaluation in the next epoch
@@ -102,7 +112,7 @@ def _python_descent(
                 )
 
             parallel_outputs = Parallel(n_jobs=threads)(
-                delayed(objective)(i, constants) for i in current_parameters
+                delayed(objective)(i, metaparameters) for i in current_parameters
             )
 
             # This objective function evaluation will be used as the
@@ -134,7 +144,7 @@ def _python_partial_descent(
     l,
     epochs,
     parameters_used,
-    constants=None,
+    metaparameters=None,
     momentum=0,
     threads=1,
     rng_seed=88,
@@ -142,16 +152,18 @@ def _python_partial_descent(
 ):
     # Performs Partial Gradient Descent using Python interpreter for evaluation
 
-    initial, constants = findi._checks._check_arguments(
+    initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
         parameters_used=parameters_used,
-        constants=constants,
+        metaparameters=metaparameters,
         momentum=momentum,
         threads=threads,
         rng_seed=rng_seed,
         numba=numba,
     )
-    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
+    n_outputs = findi._checks._check_objective(
+        objective, initial, metaparameters, numba
+    )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
 
     n_parameters = initial.shape[0]
@@ -168,7 +180,7 @@ def _python_partial_descent(
 
             # Evaluating the objective function that will count as
             # the base evaluation for this epoch
-            outputs[epoch] = objective(parameters[epoch], constants)
+            outputs[epoch] = objective(parameters[epoch], metaparameters)
 
             # Objective function is evaluated only for random parameters because we need it
             # to calculate partial derivatives, while limiting computational expense
@@ -180,7 +192,7 @@ def _python_partial_descent(
                     )
 
                     difference_objective[parameter] = objective(
-                        current_parameters, constants
+                        current_parameters, metaparameters
                     )[0]
                 else:
                     # Difference objective value is still recorded (as base
@@ -221,7 +233,7 @@ def _python_partial_descent(
                     )
 
             parallel_outputs = Parallel(n_jobs=threads)(
-                delayed(objective)(i, constants)
+                delayed(objective)(i, metaparameters)
                 for i in current_parameters[
                     np.append(np.array([0]), np.add(param_idx, 1))
                 ]
@@ -261,14 +273,14 @@ def _python_partially_partial_descent(
     partial_epochs,
     total_epochs,
     parameters_used,
-    constants=None,
+    metaparameters=None,
     momentum=0,
     threads=1,
     rng_seed=88,
 ):
     # Performs Partially Partial Gradient Descent using Python interpreter for evaluation
 
-    initial, constants = findi._checks._check_arguments(
+    initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
         partial_epochs=partial_epochs,
         total_epochs=total_epochs,
@@ -286,7 +298,7 @@ def _python_partially_partial_descent(
         l=l[:partial_epochs],
         epochs=partial_epochs,
         parameters_used=parameters_used,
-        constants=constants,
+        metaparameters=metaparameters,
         momentum=momentum,
         threads=threads,
         rng_seed=rng_seed,
@@ -300,7 +312,7 @@ def _python_partially_partial_descent(
         epochs=(total_epochs - partial_epochs),
         momentum=momentum,
         threads=threads,
-        constants=constants,
+        metaparameters=metaparameters,
     )
 
     outputs = np.append(outputs_p, outputs_r)
@@ -311,28 +323,28 @@ def _python_partially_partial_descent(
     return outputs, parameters
 
 
-def values_out(outputs, parameters, constants=None, columns=None):
+def values_out(outputs, parameters, metaparameters=None, columns=None):
     findi._checks._check_arguments(
         outputs=outputs,
         parameters=parameters,
-        constants=constants,
+        metaparameters=metaparameters,
         columns=columns,
     )
 
     if columns is None:
         columns = np.array([], dtype=np.str_)
-    if constants is None:
-        constants = np.array([])
+    if metaparameters is None:
+        metaparameters = np.array([])
 
-    if len(constants) == 0:
+    if len(metaparameters) == 0:
         inputs = parameters
     else:
         inputs = np.concatenate(
             [
                 parameters,
                 np.full(
-                    (len(parameters), len(constants)),
-                    constants,
+                    (len(parameters), len(metaparameters)),
+                    metaparameters,
                 ),
             ],
             axis=1,

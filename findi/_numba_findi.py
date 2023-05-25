@@ -43,7 +43,7 @@ def _descent_evaluate(
     parameters,
     difference_objective,
     n_parameters,
-    constants,
+    metaparameters,
 ):
     # Differences parameters and evaluates the objective at those values
     # for the regular Gradient Descent
@@ -54,7 +54,9 @@ def _descent_evaluate(
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        difference_objective[parameter] = objective(current_parameters, constants)[0]
+        difference_objective[parameter] = objective(current_parameters, metaparameters)[
+            0
+        ]
 
     return difference_objective
 
@@ -67,7 +69,7 @@ def _partial_evaluate(
     parameters,
     difference_objective,
     param_idx,
-    constants,
+    metaparameters,
 ):
     # Differences parameters and evaluates the objective at those values
     # for Partial Gradient Descent
@@ -78,7 +80,9 @@ def _partial_evaluate(
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        difference_objective[parameter] = objective(current_parameters, constants)[0]
+        difference_objective[parameter] = objective(current_parameters, metaparameters)[
+            0
+        ]
 
     return difference_objective
 
@@ -95,13 +99,13 @@ def _descent_epoch(
     momentum,
     velocity,
     n_parameters,
-    constants,
+    metaparameters,
 ):
     # Evaluates one epoch of the regular Gradient Descent
 
     # Evaluating the objective function that will count as
     # the base evaluation for this epoch
-    outputs[epoch] = objective(parameters[epoch], constants)
+    outputs[epoch] = objective(parameters[epoch], metaparameters)
 
     difference_objective = _descent_evaluate(
         objective,
@@ -110,7 +114,7 @@ def _descent_epoch(
         parameters,
         difference_objective,
         n_parameters,
-        constants,
+        metaparameters,
     )
 
     # These parameters will be used for the evaluation in the next epoch
@@ -142,7 +146,7 @@ def _partial_epoch(
     velocity,
     n_parameters,
     generator,
-    constants,
+    metaparameters,
 ):
     # Evaluates one epoch of Partial Gradient Descent
 
@@ -154,7 +158,7 @@ def _partial_epoch(
 
     # Evaluating the objective function that will count as
     # the base evaluation for this epoch
-    outputs[epoch] = objective(parameters[epoch], constants)
+    outputs[epoch] = objective(parameters[epoch], metaparameters)
 
     # Difference objective value is still recorded (as base
     # evaluation value) for non-differenced parameters
@@ -167,7 +171,7 @@ def _partial_epoch(
         parameters,
         difference_objective,
         param_idx,
-        constants,
+        metaparameters,
     )
 
     # These parameters will be used for the evaluation in the next epoch
@@ -186,17 +190,19 @@ def _partial_epoch(
 
 
 def _numba_descent(
-    objective, initial, h, l, epochs, constants=None, momentum=0, numba=True
+    objective, initial, h, l, epochs, metaparameters=None, momentum=0, numba=True
 ):
     # Performs the regular Gradient Descent using Numba JIT compiler for evaluation
 
-    initial, constants = findi._checks._check_arguments(
+    initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
-        constants=constants,
+        metaparameters=metaparameters,
         momentum=momentum,
         numba=numba,
     )
-    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
+    n_outputs = findi._checks._check_objective(
+        objective, initial, metaparameters, numba
+    )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
 
     n_parameters = initial.shape[0]
@@ -218,7 +224,7 @@ def _numba_descent(
             momentum,
             velocity,
             n_parameters,
-            constants,
+            metaparameters,
         )
 
     return outputs, parameters[:-1]
@@ -231,22 +237,24 @@ def _numba_partial_descent(
     l,
     epochs,
     parameters_used,
-    constants=None,
+    metaparameters=None,
     momentum=0,
     rng_seed=88,
     numba=True,
 ):
     # Performs Partial Gradient Descent using Numba JIT compiler for evaluation
 
-    initial, constants = findi._checks._check_arguments(
+    initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
         parameters_used=parameters_used,
-        constants=constants,
+        metaparameters=metaparameters,
         momentum=momentum,
         rng_seed=rng_seed,
         numba=numba,
     )
-    n_outputs = findi._checks._check_objective(objective, initial, constants, numba)
+    n_outputs = findi._checks._check_objective(
+        objective, initial, metaparameters, numba
+    )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
 
     n_parameters = initial.shape[0]
@@ -271,7 +279,7 @@ def _numba_partial_descent(
             velocity,
             n_parameters,
             generator,
-            constants,
+            metaparameters,
         )
 
     return outputs, parameters[:-1]
@@ -285,13 +293,13 @@ def _numba_partially_partial_descent(
     partial_epochs,
     total_epochs,
     parameters_used,
-    constants=None,
+    metaparameters=None,
     momentum=0,
     rng_seed=88,
 ):
     # Performs Partially Partial Gradient Descent using Numba JIT compiler for evaluation
 
-    initial, constants = findi._checks._check_arguments(
+    initial, metaparameters = findi._checks._check_arguments(
         partial_epochs=partial_epochs,
         total_epochs=total_epochs,
     )
@@ -304,7 +312,7 @@ def _numba_partially_partial_descent(
         l=l[:partial_epochs],
         epochs=partial_epochs,
         parameters_used=parameters_used,
-        constants=constants,
+        metaparameters=metaparameters,
         momentum=momentum,
         rng_seed=rng_seed,
     )
@@ -315,7 +323,7 @@ def _numba_partially_partial_descent(
         h=h[partial_epochs:],
         l=l[partial_epochs:],
         epochs=(total_epochs - partial_epochs),
-        constants=constants,
+        metaparameters=metaparameters,
         momentum=momentum,
     )
 

@@ -43,7 +43,7 @@ def _check_iterables(h, l, epochs):
     return h, l, epochs
 
 
-def _check_objective(objective, parameters, constants, numba):
+def _check_objective(objective, parameters, metaparameters, numba):
     if not callable(objective):
         raise ValueError(
             f"Objective function should be a callable. Current objective function type is:{type(objective)}"
@@ -57,10 +57,10 @@ def _check_objective(objective, parameters, constants, numba):
     n_arguments = len(signature(objective).parameters)
     if n_arguments != 2:
         raise ValueError(
-            "Objective function should take exactly 2 arguments, one for `parameters` and one for `constants` even if constants aren't used"
+            "Objective function should take exactly 2 arguments, one for `parameters` and one for `metaparameters` even if metaparameters aren't used in the evaluation"
         )
 
-    outputs = objective(parameters, constants)
+    outputs = objective(parameters, metaparameters)
     try:
         n_outputs = len(outputs)
     except TypeError:
@@ -93,7 +93,7 @@ def _check_arguments(
     total_epochs=None,
     outputs=None,
     parameters=None,
-    constants=None,
+    metaparameters=None,
     columns=None,
     numba=None,
 ):
@@ -164,34 +164,34 @@ def _check_arguments(
     except TypeError:
         len_parameters = 1
 
-    if not isinstance(constants, (list, nb.typed.List, np.ndarray, type(None))):
+    if not isinstance(metaparameters, (list, nb.typed.List, np.ndarray, type(None))):
         raise ValueError(
-            "Constants should be of type `list`, `nb.typed.List` or `np.ndarray`"
+            "metaparameters should be of type `list`, `nb.typed.List` or `np.ndarray`"
         )
-    if numba and isinstance(constants, list):
+    if numba and isinstance(metaparameters, list):
         dt = list()
-        for i, value in enumerate(constants):
+        for i, value in enumerate(metaparameters):
             dt.append((str(value), str(type(value))[8:-2]))
-        constants = np.array(constants, dtype=dt)
-    elif not numba and isinstance(constants, list):
-        constants = np.asarray(constants)
-    elif isinstance(constants, nb.typed.List):
-        constants = np.asarray(constants)
-    if isinstance(constants, type(None)):
-        len_constants = 0
-    elif isinstance(constants, (list, nb.typed.List, np.ndarray)):
-        len_constants = len(constants)
+        metaparameters = np.array(metaparameters, dtype=dt)
+    elif not numba and isinstance(metaparameters, list):
+        metaparameters = np.asarray(metaparameters)
+    elif isinstance(metaparameters, nb.typed.List):
+        metaparameters = np.asarray(metaparameters)
+    if isinstance(metaparameters, type(None)):
+        len_metaparameters = 0
+    elif isinstance(metaparameters, (list, nb.typed.List, np.ndarray)):
+        len_metaparameters = len(metaparameters)
 
     if not isinstance(columns, (list, np.ndarray, type(None))):
         raise ValueError("Columns should be either a `list` or `np.ndarray`")
 
     if outputs is not None and parameters is not None and columns is not None:
-        if (len_outputs + len_parameters + len_constants) != len(columns):
+        if (len_outputs + len_parameters + len_metaparameters) != len(columns):
             raise ValueError(
                 "Number of column names given in `columns` doesn't match the combined number of outputs, parameters and columns"
             )
 
-    return initial, constants
+    return initial, metaparameters
 
 
 def _check_numba(numba):
