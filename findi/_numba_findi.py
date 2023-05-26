@@ -311,6 +311,8 @@ def _numba_partially_partial_descent(
     # Performs Partially Partial Gradient Descent using Numba JIT compiler for evaluation
 
     initial, metaparameters = findi._checks._check_arguments(
+        initial=initial,
+        metaparameters=metaparameters,
         partial_epochs=partial_epochs,
         total_epochs=total_epochs,
     )
