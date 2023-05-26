@@ -13,84 +13,7 @@ import numba as nb
 import findi._checks
 
 
-@nb.njit
-def _update(
-    rate,
-    difference_objective,
-    outputs,
-    difference,
-    momentum,
-    velocity,
-    epoch,
-    parameters,
-):
-    # Updated parameter values
-
-    velocity = (
-        momentum * velocity
-        - rate * (difference_objective - outputs[epoch, 0]) / difference
-    )
-    updated_parameters = parameters[epoch] + velocity
-
-    return updated_parameters
-
-
 @nb.njit(parallel=True)
-def _descent_evaluate(
-    objective,
-    epoch,
-    difference,
-    parameters,
-    difference_objective,
-    n_parameters,
-    out,
-    metaparameters,
-):
-    # Differences parameters and evaluates the objective at those values
-    # for the regular Gradient Descent
-
-    # Objective function is evaluated for every (differentiated) parameter
-    # because we need it to calculate partial derivatives
-    for parameter in nb.prange(n_parameters):
-        current_parameters = parameters[epoch]
-        current_parameters[parameter] = current_parameters[parameter] + difference
-
-        out[parameter] = objective(current_parameters, metaparameters)
-
-    difference_objective = out[:, 0]
-
-    return difference_objective
-
-
-@nb.njit(parallel=True)
-def _partial_evaluate(
-    objective,
-    epoch,
-    difference,
-    parameters,
-    difference_objective,
-    param_idx,
-    out,
-    metaparameters,
-):
-    # Differences parameters and evaluates the objective at those values
-    # for Partial Gradient Descent
-
-    # Objective function is evaluated only for random parameters because we need it
-    # to calculate partial derivatives, while limiting computational expense
-
-    for parameter in nb.prange(param_idx.shape[0]):
-        current_parameters = parameters[epoch]
-        current_parameters[parameter] = current_parameters[parameter] + difference
-
-        out[parameter] = objective(current_parameters, metaparameters)
-
-    difference_objective = out[:, 0]
-
-    return difference_objective
-
-
-@nb.njit
 def _descent_epoch(
     objective,
     epoch,
@@ -111,33 +34,27 @@ def _descent_epoch(
     # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch], metaparameters)
 
-    difference_objective = _descent_evaluate(
-        objective,
-        epoch,
-        difference,
-        parameters,
-        difference_objective,
-        n_parameters,
-        out,
-        metaparameters,
-    )
+    # Objective function is evaluated for every (differentiated) parameter
+    # because we need it to calculate partial derivatives
+    for parameter in nb.prange(n_parameters):
+        current_parameters = parameters[epoch]
+        current_parameters[parameter] = current_parameters[parameter] + difference
+
+        out[parameter] = objective(current_parameters, metaparameters)
+
+    difference_objective = out[:, 0]
 
     # These parameters will be used for the evaluation in the next epoch
-    parameters[epoch + 1] = _update(
-        rate,
-        difference_objective,
-        outputs,
-        difference,
-        momentum,
-        velocity,
-        epoch,
-        parameters,
+    velocity = (
+        momentum * velocity
+        - rate * (difference_objective - outputs[epoch, 0]) / difference
     )
+    parameters[epoch + 1] = parameters[epoch] + velocity
 
     return outputs, parameters
 
 
-@nb.njit
+@nb.njit(parallel=True)
 def _partial_epoch(
     objective,
     epoch,
@@ -170,28 +87,22 @@ def _partial_epoch(
     # evaluation value) for non-differenced parameters
     # (in current epoch) for consistency and convenience
     difference_objective = np.repeat(outputs[epoch, 0], n_parameters)
-    difference_objective = _partial_evaluate(
-        objective,
-        epoch,
-        difference,
-        parameters,
-        difference_objective,
-        param_idx,
-        out,
-        metaparameters,
-    )
+    # Objective function is evaluated only for random parameters because we need it
+    # to calculate partial derivatives, while limiting computational expense
+    for parameter in nb.prange(param_idx.shape[0]):
+        current_parameters = parameters[epoch]
+        current_parameters[parameter] = current_parameters[parameter] + difference
+
+        out[parameter] = objective(current_parameters, metaparameters)
+
+    difference_objective = out[:, 0]
 
     # These parameters will be used for the evaluation in the next epoch
-    parameters[epoch + 1] = _update(
-        rate,
-        difference_objective,
-        outputs,
-        difference,
-        momentum,
-        velocity,
-        epoch,
-        parameters,
+    velocity = (
+        momentum * velocity
+        - rate * (difference_objective - outputs[epoch, 0]) / difference
     )
+    parameters[epoch + 1] = parameters[epoch] + velocity
 
     return outputs, parameters
 
@@ -207,7 +118,7 @@ def _numba_descent(
         momentum=momentum,
         numba=numba,
     )
-    n_outputs = findi._checks._check_objective(
+    n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -261,7 +172,7 @@ def _numba_partial_descent(
         rng_seed=rng_seed,
         numba=numba,
     )
-    n_outputs = findi._checks._check_objective(
+    n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
