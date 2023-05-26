@@ -4,7 +4,7 @@ from findi import descent, partial_descent
 from optschedule import Schedule
 
 
-def foo(params, constants):
+def foo(params, metaparameters):
     return [(params[0] + 2) ** 2]
 
 

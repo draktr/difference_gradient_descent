@@ -39,7 +39,7 @@ def test_descent(differences, rates):
         l=rates,
         epochs=1000,
         numba=True,
-        constants=[True],
+        metaparameters=[True],
     )
 
     assert outputs[-1] <= 0.1
@@ -54,7 +54,7 @@ def test_partial(differences, rates):
         epochs=1000,
         parameters_used=1,
         numba=True,
-        constants=[True],
+        metaparameters=[True],
     )
 
     assert outputs[-1] <= 0.1
