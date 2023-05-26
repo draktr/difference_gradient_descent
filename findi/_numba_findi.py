@@ -1,8 +1,7 @@
 """
 Module `_numba_findi` stores functions that will be used for optimization
 if the user chooses `numba=True` in public functions stored in `findi` module.
-Functions here are optimized for `Numba`'s just-in-time compiler, and relevant
-ones (i.e. `_descent_evaluate()` and `_partial_evaluate()`) are parallelized.
+Functions here are optimized and parallelized for `Numba`'s just-in-time compiler.
 Their use requires the objective function to also be `Numba`-optimized, however,
 it generally results in significant performance improvements. Detailed docstrings
 are omitted, as they are provided in `findi` module.
@@ -11,6 +10,98 @@ are omitted, as they are provided in `findi` module.
 import numpy as np
 import numba as nb
 import findi._checks
+
+
+@nb.njit(parallel=True)
+def _nmp_descent_epoch(
+    objective,
+    epoch,
+    rate,
+    difference,
+    outputs,
+    parameters,
+    difference_objective,
+    momentum,
+    velocity,
+    n_parameters,
+    out,
+):
+    # Evaluates one epoch of the regular Gradient Descent
+
+    # Evaluating the objective function that will count as
+    # the base evaluation for this epoch
+    outputs[epoch] = objective(parameters[epoch])
+
+    # Objective function is evaluated for every (differentiated) parameter
+    # because we need it to calculate partial derivatives
+    for parameter in nb.prange(n_parameters):
+        current_parameters = parameters[epoch]
+        current_parameters[parameter] = current_parameters[parameter] + difference
+
+        out[parameter] = objective(current_parameters)
+
+    difference_objective = out[:, 0]
+
+    # These parameters will be used for the evaluation in the next epoch
+    velocity = (
+        momentum * velocity
+        - rate * (difference_objective - outputs[epoch, 0]) / difference
+    )
+    parameters[epoch + 1] = parameters[epoch] + velocity
+
+    return outputs, parameters
+
+
+@nb.njit(parallel=True)
+def _nmp_partial_epoch(
+    objective,
+    epoch,
+    rate,
+    difference,
+    outputs,
+    parameters,
+    difference_objective,
+    parameters_used,
+    momentum,
+    velocity,
+    n_parameters,
+    out,
+    generator,
+):
+    # Evaluates one epoch of Partial Gradient Descent
+
+    param_idx = np.zeros(parameters_used, dtype=np.int_)
+    while np.unique(param_idx).shape[0] != param_idx.shape[0]:
+        param_idx = generator.integers(
+            low=0, high=n_parameters, size=parameters_used, dtype=np.int_
+        )
+
+    # Evaluating the objective function that will count as
+    # the base evaluation for this epoch
+    outputs[epoch] = objective(parameters[epoch])
+
+    # Difference objective value is still recorded (as base
+    # evaluation value) for non-differenced parameters
+    # (in current epoch) for consistency and convenience
+    difference_objective = np.repeat(outputs[epoch, 0], n_parameters)
+    # Objective function is evaluated only for random parameters because we need it
+    # to calculate partial derivatives, while limiting computational expense
+    for parameter in nb.prange(param_idx.shape[0]):
+        current_parameters = parameters[epoch]
+        current_parameters[parameter] = current_parameters[parameter] + difference
+
+        out[parameter] = objective(current_parameters)
+
+    difference_objective = out[:, 0]
+
+    # These parameters will be used for the evaluation in the next epoch
+    velocity = (
+        momentum * velocity
+        - rate * (difference_objective - outputs[epoch, 0]) / difference
+    )
+    parameters[epoch + 1] = parameters[epoch] + velocity
+
+    return outputs, parameters
 
 
 @nb.njit(parallel=True)
@@ -131,21 +222,37 @@ def _numba_descent(
     difference_objective = np.zeros(n_parameters)
     velocity = 0
 
-    for epoch, (rate, difference) in enumerate(zip(l, h)):
-        outputs, parameters = _descent_epoch(
-            objective,
-            epoch,
-            rate,
-            difference,
-            outputs,
-            parameters,
-            difference_objective,
-            momentum,
-            velocity,
-            n_parameters,
-            out,
-            metaparameters,
-        )
+    if no_metaparameters:
+        for epoch, (rate, difference) in enumerate(zip(l, h)):
+            outputs, parameters = _nmp_descent_epoch(
+                objective,
+                epoch,
+                rate,
+                difference,
+                outputs,
+                parameters,
+                difference_objective,
+                momentum,
+                velocity,
+                n_parameters,
+                out,
+            )
+    else:
+        for epoch, (rate, difference) in enumerate(zip(l, h)):
+            outputs, parameters = _descent_epoch(
+                objective,
+                epoch,
+                rate,
+                difference,
+                outputs,
+                parameters,
+                difference_objective,
+                momentum,
+                velocity,
+                n_parameters,
+                out,
+                metaparameters,
+            )
 
     return outputs, parameters[:-1]
 
@@ -186,23 +293,41 @@ def _numba_partial_descent(
     generator = np.random.default_rng(rng_seed)
     velocity = 0
 
-    for epoch, (rate, difference) in enumerate(zip(l, h)):
-        outputs, parameters = _partial_epoch(
-            objective,
-            epoch,
-            rate,
-            difference,
-            outputs,
-            parameters,
-            difference_objective,
-            parameters_used,
-            momentum,
-            velocity,
-            n_parameters,
-            out,
-            generator,
-            metaparameters,
-        )
+    if no_metaparameters:
+        for epoch, (rate, difference) in enumerate(zip(l, h)):
+            outputs, parameters = _nmp_partial_epoch(
+                objective,
+                epoch,
+                rate,
+                difference,
+                outputs,
+                parameters,
+                difference_objective,
+                parameters_used,
+                momentum,
+                velocity,
+                n_parameters,
+                out,
+                generator,
+            )
+    else:
+        for epoch, (rate, difference) in enumerate(zip(l, h)):
+            outputs, parameters = _partial_epoch(
+                objective,
+                epoch,
+                rate,
+                difference,
+                outputs,
+                parameters,
+                difference_objective,
+                parameters_used,
+                momentum,
+                velocity,
+                n_parameters,
+                out,
+                generator,
+                metaparameters,
+            )
 
     return outputs, parameters[:-1]
 

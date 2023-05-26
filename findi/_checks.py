@@ -56,12 +56,17 @@ def _check_objective(objective, parameters, metaparameters, numba):
         )
 
     n_arguments = len(signature(objective).parameters)
-    if n_arguments != 2:
+    if n_arguments > 2:
         raise ValueError(
-            "Objective function should take exactly 2 arguments, one for `parameters` and one for `metaparameters` even if metaparameters aren't used in the evaluation"
+            "Objective function should take at most 2 arguments, one for `parameters` (required) and one for `metaparameters` (optional)"
         )
 
-    outputs = objective(parameters, metaparameters)
+    try:
+        outputs = objective(parameters)
+        no_metaparameters = True
+    except TypeError:
+        outputs = objective(parameters, metaparameters)
+        no_metaparameters = False
     if isinstance(outputs, numbers.Number):
         n_outputs = 1
         output_is_number = True
@@ -69,7 +74,7 @@ def _check_objective(objective, parameters, metaparameters, numba):
         n_outputs = len(outputs)
         output_is_number = False
 
-    return n_outputs, output_is_number
+    return n_outputs, output_is_number, no_metaparameters
 
 
 def _check_threads(threads, parameters):
@@ -167,7 +172,7 @@ def _check_arguments(
 
     if not isinstance(metaparameters, (list, nb.typed.List, np.ndarray, type(None))):
         raise ValueError(
-            "metaparameters should be of type `list`, `nb.typed.List` or `np.ndarray`"
+            "metaparameters should be of type `list`, `nb.typed.List`, `np.ndarray` or `NoneType`"
         )
     if numba and isinstance(metaparameters, list):
         dt = list()

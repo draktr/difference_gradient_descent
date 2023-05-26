@@ -54,7 +54,7 @@ def _python_descent(
         threads=threads,
         numba=numba,
     )
-    n_outputs, output_is_number = findi._checks._check_objective(
+    n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -68,32 +68,64 @@ def _python_descent(
 
     if threads == 1:
         for epoch, (rate, difference) in enumerate(zip(l, h)):
-            # Evaluating the objective function that will count as
-            # the base evaluation for this epoch
-            outputs[epoch] = objective(parameters[epoch], metaparameters)
-
             # Objective function is evaluated for every (differentiated) parameter
             # because we need it to calculate partial derivatives
             if output_is_number:
-                for parameter in range(n_parameters):
-                    current_parameters = parameters[epoch]
-                    current_parameters[parameter] = (
-                        current_parameters[parameter] + difference
-                    )
+                if no_metaparameters:
+                    # Evaluating the objective function that will count as
+                    # the base evaluation for this epoch
+                    outputs[epoch] = objective(parameters[epoch])
 
-                    difference_objective[parameter] = objective(
-                        current_parameters, metaparameters
-                    )
+                    for parameter in range(n_parameters):
+                        current_parameters = parameters[epoch]
+                        current_parameters[parameter] = (
+                            current_parameters[parameter] + difference
+                        )
+
+                        difference_objective[parameter] = objective(current_parameters)
+                else:
+                    # Evaluating the objective function that will count as
+                    # the base evaluation for this epoch
+                    outputs[epoch] = objective(parameters[epoch], metaparameters)
+
+                    for parameter in range(n_parameters):
+                        current_parameters = parameters[epoch]
+                        current_parameters[parameter] = (
+                            current_parameters[parameter] + difference
+                        )
+
+                        difference_objective[parameter] = objective(
+                            current_parameters, metaparameters
+                        )
             else:
-                for parameter in range(n_parameters):
-                    current_parameters = parameters[epoch]
-                    current_parameters[parameter] = (
-                        current_parameters[parameter] + difference
-                    )
+                if no_metaparameters:
+                    # Evaluating the objective function that will count as
+                    # the base evaluation for this epoch
+                    outputs[epoch] = objective(parameters[epoch])
 
-                    difference_objective[parameter] = objective(
-                        current_parameters, metaparameters
-                    )[0]
+                    for parameter in range(n_parameters):
+                        current_parameters = parameters[epoch]
+                        current_parameters[parameter] = (
+                            current_parameters[parameter] + difference
+                        )
+
+                        difference_objective[parameter] = objective(current_parameters)[
+                            0
+                        ]
+                else:
+                    # Evaluating the objective function that will count as
+                    # the base evaluation for this epoch
+                    outputs[epoch] = objective(parameters[epoch], metaparameters)
+
+                    for parameter in range(n_parameters):
+                        current_parameters = parameters[epoch]
+                        current_parameters[parameter] = (
+                            current_parameters[parameter] + difference
+                        )
+
+                        difference_objective[parameter] = objective(
+                            current_parameters, metaparameters
+                        )[0]
 
             # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1] = _update(
@@ -121,10 +153,14 @@ def _python_descent(
                 current_parameters[parameter + 1, parameter] = (
                     current_parameters[0, parameter] + difference
                 )
-
-            parallel_outputs = Parallel(n_jobs=threads)(
-                delayed(objective)(i, metaparameters) for i in current_parameters
-            )
+            if no_metaparameters:
+                parallel_outputs = Parallel(n_jobs=threads)(
+                    delayed(objective)(i) for i in current_parameters
+                )
+            else:
+                parallel_outputs = Parallel(n_jobs=threads)(
+                    delayed(objective)(i, metaparameters) for i in current_parameters
+                )
 
             # This objective function evaluation will be used as the
             # base evaluation for this epoch
@@ -178,7 +214,7 @@ def _python_partial_descent(
         rng_seed=rng_seed,
         numba=numba,
     )
-    n_outputs, output_is_number = findi._checks._check_objective(
+    n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -195,44 +231,90 @@ def _python_partial_descent(
         for epoch, (rate, difference) in enumerate(zip(l, h)):
             param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
-            # Evaluating the objective function that will count as
-            # the base evaluation for this epoch
-            outputs[epoch] = objective(parameters[epoch], metaparameters)
-
             # Objective function is evaluated only for random parameters because we need it
             # to calculate partial derivatives, while limiting computational expense
             if output_is_number:
-                for parameter in range(n_parameters):
-                    if parameter in param_idx:
-                        current_parameters = parameters[epoch]
-                        current_parameters[parameter] = (
-                            current_parameters[parameter] + difference
-                        )
+                if no_metaparameters:
+                    # Evaluating the objective function that will count as
+                    # the base evaluation for this epoch
+                    outputs[epoch] = objective(parameters[epoch])
 
-                        difference_objective[parameter] = objective(
-                            current_parameters, metaparameters
-                        )
-                    else:
-                        # Difference objective value is still recorded (as base
-                        # evaluation value) for non-differenced parameters
-                        # (in current epoch) for consistency and convenience
-                        difference_objective[parameter] = outputs[epoch]
+                    for parameter in range(n_parameters):
+                        if parameter in param_idx:
+                            current_parameters = parameters[epoch]
+                            current_parameters[parameter] = (
+                                current_parameters[parameter] + difference
+                            )
+
+                            difference_objective[parameter] = objective(
+                                current_parameters
+                            )
+                        else:
+                            # Difference objective value is still recorded (as base
+                            # evaluation value) for non-differenced parameters
+                            # (in current epoch) for consistency and convenience
+                            difference_objective[parameter] = outputs[epoch]
+                else:
+                    # Evaluating the objective function that will count as
+                    # the base evaluation for this epoch
+                    outputs[epoch] = objective(parameters[epoch], metaparameters)
+
+                    for parameter in range(n_parameters):
+                        if parameter in param_idx:
+                            current_parameters = parameters[epoch]
+                            current_parameters[parameter] = (
+                                current_parameters[parameter] + difference
+                            )
+
+                            difference_objective[parameter] = objective(
+                                current_parameters, metaparameters
+                            )
+                        else:
+                            # Difference objective value is still recorded (as base
+                            # evaluation value) for non-differenced parameters
+                            # (in current epoch) for consistency and convenience
+                            difference_objective[parameter] = outputs[epoch]
             else:
-                for parameter in range(n_parameters):
-                    if parameter in param_idx:
-                        current_parameters = parameters[epoch]
-                        current_parameters[parameter] = (
-                            current_parameters[parameter] + difference
-                        )
+                if no_metaparameters:
+                    # Evaluating the objective function that will count as
+                    # the base evaluation for this epoch
+                    outputs[epoch] = objective(parameters[epoch])
 
-                        difference_objective[parameter] = objective(
-                            current_parameters, metaparameters
-                        )[0]
-                    else:
-                        # Difference objective value is still recorded (as base
-                        # evaluation value) for non-differenced parameters
-                        # (in current epoch) for consistency and convenience
-                        difference_objective[parameter] = outputs[epoch, 0]
+                    for parameter in range(n_parameters):
+                        if parameter in param_idx:
+                            current_parameters = parameters[epoch]
+                            current_parameters[parameter] = (
+                                current_parameters[parameter] + difference
+                            )
+
+                            difference_objective[parameter] = objective(
+                                current_parameters
+                            )[0]
+                        else:
+                            # Difference objective value is still recorded (as base
+                            # evaluation value) for non-differenced parameters
+                            # (in current epoch) for consistency and convenience
+                            difference_objective[parameter] = outputs[epoch, 0]
+                else:
+                    # Evaluating the objective function that will count as
+                    # the base evaluation for this epoch
+                    outputs[epoch] = objective(parameters[epoch], metaparameters)
+
+                    for parameter in range(n_parameters):
+                        if parameter in param_idx:
+                            current_parameters = parameters[epoch]
+                            current_parameters[parameter] = (
+                                current_parameters[parameter] + difference
+                            )
+
+                            difference_objective[parameter] = objective(
+                                current_parameters, metaparameters
+                            )[0]
+                        else:
+                            # Difference objective value is still recorded (as base
+                            # evaluation value) for non-differenced parameters
+                            # (in current epoch) for consistency and convenience
+                            difference_objective[parameter] = outputs[epoch, 0]
 
             # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1] = _update(
@@ -266,12 +348,20 @@ def _python_partial_descent(
                         current_parameters[0, parameter] + difference
                     )
 
-            parallel_outputs = Parallel(n_jobs=threads)(
-                delayed(objective)(i, metaparameters)
-                for i in current_parameters[
-                    np.append(np.array([0]), np.add(param_idx, 1))
-                ]
-            )
+            if no_metaparameters:
+                parallel_outputs = Parallel(n_jobs=threads)(
+                    delayed(objective)(i)
+                    for i in current_parameters[
+                        np.append(np.array([0]), np.add(param_idx, 1))
+                    ]
+                )
+            else:
+                parallel_outputs = Parallel(n_jobs=threads)(
+                    delayed(objective)(i, metaparameters)
+                    for i in current_parameters[
+                        np.append(np.array([0]), np.add(param_idx, 1))
+                    ]
+                )
 
             # This objective function evaluation will be used as the
             # base evaluation for this epoch
