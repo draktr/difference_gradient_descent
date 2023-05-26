@@ -1,5 +1,6 @@
 import numpy as np
 import numba as nb
+import numbers
 from inspect import signature
 import warnings
 from optschedule import Schedule
@@ -61,12 +62,10 @@ def _check_objective(objective, parameters, metaparameters, numba):
         )
 
     outputs = objective(parameters, metaparameters)
-    try:
+    if isinstance(outputs, numbers.Number):
+        n_outputs = 1
+    else:
         n_outputs = len(outputs)
-    except TypeError:
-        raise ValueError(
-            "Objective function should return a subscriptable array-like structure (e.g. `np.ndarray`) even if one value is only returned"
-        )
 
     return n_outputs
 

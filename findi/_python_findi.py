@@ -74,15 +74,26 @@ def _python_descent(
 
             # Objective function is evaluated for every (differentiated) parameter
             # because we need it to calculate partial derivatives
-            for parameter in range(n_parameters):
-                current_parameters = parameters[epoch]
-                current_parameters[parameter] = (
-                    current_parameters[parameter] + difference
-                )
+            if n_outputs == 1:
+                for parameter in range(n_parameters):
+                    current_parameters = parameters[epoch]
+                    current_parameters[parameter] = (
+                        current_parameters[parameter] + difference
+                    )
 
-                difference_objective[parameter] = objective(
-                    current_parameters, metaparameters
-                )[0]
+                    difference_objective[parameter] = objective(
+                        current_parameters, metaparameters
+                    )
+            else:
+                for parameter in range(n_parameters):
+                    current_parameters = parameters[epoch]
+                    current_parameters[parameter] = (
+                        current_parameters[parameter] + difference
+                    )
+
+                    difference_objective[parameter] = objective(
+                        current_parameters, metaparameters
+                    )[0]
 
             # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1] = _update(
@@ -118,9 +129,15 @@ def _python_descent(
             # This objective function evaluation will be used as the
             # base evaluation for this epoch
             outputs[epoch] = parallel_outputs[0]
-            difference_objective = np.array(
-                [parallel_outputs[i][0] for i in range(1, n_parameters + 1)]
-            )
+
+            if n_outputs == 1:
+                difference_objective = np.array(
+                    [parallel_outputs[i] for i in range(1, n_parameters + 1)]
+                )
+            else:
+                difference_objective = np.array(
+                    [parallel_outputs[i][0] for i in range(1, n_parameters + 1)]
+                )
 
             # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1] = _update(
@@ -184,21 +201,38 @@ def _python_partial_descent(
 
             # Objective function is evaluated only for random parameters because we need it
             # to calculate partial derivatives, while limiting computational expense
-            for parameter in range(n_parameters):
-                if parameter in param_idx:
-                    current_parameters = parameters[epoch]
-                    current_parameters[parameter] = (
-                        current_parameters[parameter] + difference
-                    )
+            if n_outputs == 1:
+                for parameter in range(n_parameters):
+                    if parameter in param_idx:
+                        current_parameters = parameters[epoch]
+                        current_parameters[parameter] = (
+                            current_parameters[parameter] + difference
+                        )
 
-                    difference_objective[parameter] = objective(
-                        current_parameters, metaparameters
-                    )[0]
-                else:
-                    # Difference objective value is still recorded (as base
-                    # evaluation value) for non-differenced parameters
-                    # (in current epoch) for consistency and convenience
-                    difference_objective[parameter] = outputs[epoch, 0]
+                        difference_objective[parameter] = objective(
+                            current_parameters, metaparameters
+                        )
+                    else:
+                        # Difference objective value is still recorded (as base
+                        # evaluation value) for non-differenced parameters
+                        # (in current epoch) for consistency and convenience
+                        difference_objective[parameter] = outputs[epoch]
+            else:
+                for parameter in range(n_parameters):
+                    if parameter in param_idx:
+                        current_parameters = parameters[epoch]
+                        current_parameters[parameter] = (
+                            current_parameters[parameter] + difference
+                        )
+
+                        difference_objective[parameter] = objective(
+                            current_parameters, metaparameters
+                        )[0]
+                    else:
+                        # Difference objective value is still recorded (as base
+                        # evaluation value) for non-differenced parameters
+                        # (in current epoch) for consistency and convenience
+                        difference_objective[parameter] = outputs[epoch, 0]
 
             # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1] = _update(
@@ -245,10 +279,16 @@ def _python_partial_descent(
             # Difference objective value is still recorded (as base
             # evaluation value) for non-differenced parameters
             # (in current epoch) for consistency and convenience
-            difference_objective = np.full(n_parameters, parallel_outputs[0][0])
-            difference_objective[param_idx] = np.array(
-                [parallel_outputs[i][0] for i in range(1, parameters_used + 1)]
-            )
+            if n_outputs == 1:
+                difference_objective = np.full(n_parameters, parallel_outputs[0])
+                difference_objective[param_idx] = np.array(
+                    [parallel_outputs[i] for i in range(1, parameters_used + 1)]
+                )
+            else:
+                difference_objective = np.full(n_parameters, parallel_outputs[0][0])
+                difference_objective[param_idx] = np.array(
+                    [parallel_outputs[i][0] for i in range(1, parameters_used + 1)]
+                )
 
             # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1] = _update(

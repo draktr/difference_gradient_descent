@@ -43,6 +43,7 @@ def _descent_evaluate(
     parameters,
     difference_objective,
     n_parameters,
+    out,
     metaparameters,
 ):
     # Differences parameters and evaluates the objective at those values
@@ -54,9 +55,9 @@ def _descent_evaluate(
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        difference_objective[parameter] = objective(current_parameters, metaparameters)[
-            0
-        ]
+        out[parameter] = objective(current_parameters, metaparameters)
+
+    difference_objective = out[:, 0]
 
     return difference_objective
 
@@ -69,6 +70,7 @@ def _partial_evaluate(
     parameters,
     difference_objective,
     param_idx,
+    out,
     metaparameters,
 ):
     # Differences parameters and evaluates the objective at those values
@@ -76,13 +78,14 @@ def _partial_evaluate(
 
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
+
     for parameter in nb.prange(param_idx.shape[0]):
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        difference_objective[parameter] = objective(current_parameters, metaparameters)[
-            0
-        ]
+        out[parameter] = objective(current_parameters, metaparameters)
+
+    difference_objective = out[:, 0]
 
     return difference_objective
 
@@ -99,6 +102,7 @@ def _descent_epoch(
     momentum,
     velocity,
     n_parameters,
+    out,
     metaparameters,
 ):
     # Evaluates one epoch of the regular Gradient Descent
@@ -114,6 +118,7 @@ def _descent_epoch(
         parameters,
         difference_objective,
         n_parameters,
+        out,
         metaparameters,
     )
 
@@ -145,6 +150,7 @@ def _partial_epoch(
     momentum,
     velocity,
     n_parameters,
+    out,
     generator,
     metaparameters,
 ):
@@ -171,6 +177,7 @@ def _partial_epoch(
         parameters,
         difference_objective,
         param_idx,
+        out,
         metaparameters,
     )
 
@@ -209,6 +216,7 @@ def _numba_descent(
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
+    out = np.zeros((n_parameters, n_outputs))
     difference_objective = np.zeros(n_parameters)
     velocity = 0
 
@@ -224,6 +232,7 @@ def _numba_descent(
             momentum,
             velocity,
             n_parameters,
+            out,
             metaparameters,
         )
 
@@ -261,6 +270,7 @@ def _numba_partial_descent(
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
+    out = np.zeros((n_parameters, n_outputs))
     difference_objective = np.zeros(n_parameters)
     generator = np.random.default_rng(rng_seed)
     velocity = 0
@@ -278,6 +288,7 @@ def _numba_partial_descent(
             momentum,
             velocity,
             n_parameters,
+            out,
             generator,
             metaparameters,
         )
