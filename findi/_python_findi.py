@@ -54,7 +54,7 @@ def _python_descent(
         threads=threads,
         numba=numba,
     )
-    n_outputs = findi._checks._check_objective(
+    n_outputs, output_is_number = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -74,7 +74,7 @@ def _python_descent(
 
             # Objective function is evaluated for every (differentiated) parameter
             # because we need it to calculate partial derivatives
-            if n_outputs == 1:
+            if output_is_number:
                 for parameter in range(n_parameters):
                     current_parameters = parameters[epoch]
                     current_parameters[parameter] = (
@@ -130,7 +130,7 @@ def _python_descent(
             # base evaluation for this epoch
             outputs[epoch] = parallel_outputs[0]
 
-            if n_outputs == 1:
+            if output_is_number:
                 difference_objective = np.array(
                     [parallel_outputs[i] for i in range(1, n_parameters + 1)]
                 )
@@ -178,7 +178,7 @@ def _python_partial_descent(
         rng_seed=rng_seed,
         numba=numba,
     )
-    n_outputs = findi._checks._check_objective(
+    n_outputs, output_is_number = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
     (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
@@ -201,7 +201,7 @@ def _python_partial_descent(
 
             # Objective function is evaluated only for random parameters because we need it
             # to calculate partial derivatives, while limiting computational expense
-            if n_outputs == 1:
+            if output_is_number:
                 for parameter in range(n_parameters):
                     if parameter in param_idx:
                         current_parameters = parameters[epoch]
@@ -279,7 +279,7 @@ def _python_partial_descent(
             # Difference objective value is still recorded (as base
             # evaluation value) for non-differenced parameters
             # (in current epoch) for consistency and convenience
-            if n_outputs == 1:
+            if output_is_number:
                 difference_objective = np.full(n_parameters, parallel_outputs[0])
                 difference_objective[param_idx] = np.array(
                     [parallel_outputs[i] for i in range(1, parameters_used + 1)]

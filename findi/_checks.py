@@ -64,10 +64,12 @@ def _check_objective(objective, parameters, metaparameters, numba):
     outputs = objective(parameters, metaparameters)
     if isinstance(outputs, numbers.Number):
         n_outputs = 1
+        output_is_number = True
     else:
         n_outputs = len(outputs)
+        output_is_number = False
 
-    return n_outputs
+    return n_outputs, output_is_number
 
 
 def _check_threads(threads, parameters):
