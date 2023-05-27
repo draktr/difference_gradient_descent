@@ -31,7 +31,7 @@ def _update(
     )
     updated_parameters = parameters[epoch] + velocity
 
-    return updated_parameters
+    return updated_parameters, velocity
 
 
 def _python_descent(
@@ -128,7 +128,7 @@ def _python_descent(
                         )[0]
 
             # These parameters will be used for the evaluation in the next epoch
-            parameters[epoch + 1] = _update(
+            parameters[epoch + 1], velocity = _update(
                 rate,
                 difference_objective,
                 outputs,
@@ -176,7 +176,7 @@ def _python_descent(
                 )
 
             # These parameters will be used for the evaluation in the next epoch
-            parameters[epoch + 1] = _update(
+            parameters[epoch + 1], velocity = _update(
                 rate,
                 difference_objective,
                 outputs,
@@ -317,7 +317,7 @@ def _python_partial_descent(
                             difference_objective[parameter] = outputs[epoch, 0]
 
             # These parameters will be used for the evaluation in the next epoch
-            parameters[epoch + 1] = _update(
+            parameters[epoch + 1], velocity = _update(
                 rate,
                 difference_objective,
                 outputs,
@@ -381,7 +381,7 @@ def _python_partial_descent(
                 )
 
             # These parameters will be used for the evaluation in the next epoch
-            parameters[epoch + 1] = _update(
+            parameters[epoch + 1], velocity = _update(
                 rate,
                 difference_objective,
                 outputs,

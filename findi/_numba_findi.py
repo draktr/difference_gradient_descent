@@ -46,7 +46,7 @@ def _nmp_descent_epoch(
     )
     parameters[epoch + 1] = parameters[epoch] + velocity
 
-    return outputs, parameters
+    return outputs, parameters, velocity
 
 
 @nb.njit(parallel=True)
@@ -95,7 +95,7 @@ def _nmp_partial_epoch(
     )
     parameters[epoch + 1] = parameters[epoch] + velocity
 
-    return outputs, parameters
+    return outputs, parameters, velocity
 
 
 @nb.njit(parallel=True)
@@ -133,7 +133,7 @@ def _descent_epoch(
     )
     parameters[epoch + 1] = parameters[epoch] + velocity
 
-    return outputs, parameters
+    return outputs, parameters, velocity
 
 
 @nb.njit(parallel=True)
@@ -183,7 +183,7 @@ def _partial_epoch(
     )
     parameters[epoch + 1] = parameters[epoch] + velocity
 
-    return outputs, parameters
+    return outputs, parameters, velocity
 
 
 def _numba_descent(
@@ -211,7 +211,7 @@ def _numba_descent(
 
     if no_metaparameters:
         for epoch, (rate, difference) in enumerate(zip(l, h)):
-            outputs, parameters = _nmp_descent_epoch(
+            outputs, parameters, velocity = _nmp_descent_epoch(
                 objective,
                 epoch,
                 rate,
@@ -225,7 +225,7 @@ def _numba_descent(
             )
     else:
         for epoch, (rate, difference) in enumerate(zip(l, h)):
-            outputs, parameters = _descent_epoch(
+            outputs, parameters, velocity = _descent_epoch(
                 objective,
                 epoch,
                 rate,
@@ -279,7 +279,7 @@ def _numba_partial_descent(
 
     if no_metaparameters:
         for epoch, (rate, difference) in enumerate(zip(l, h)):
-            outputs, parameters = _nmp_partial_epoch(
+            outputs, parameters, velocity = _nmp_partial_epoch(
                 objective,
                 epoch,
                 rate,
@@ -295,7 +295,7 @@ def _numba_partial_descent(
             )
     else:
         for epoch, (rate, difference) in enumerate(zip(l, h)):
-            outputs, parameters = _partial_epoch(
+            outputs, parameters, velocity = _partial_epoch(
                 objective,
                 epoch,
                 rate,
