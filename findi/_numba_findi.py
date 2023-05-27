@@ -20,11 +20,10 @@ def _nmp_descent_epoch(
     difference,
     outputs,
     parameters,
-    difference_objective,
+    difference_outputs,
     momentum,
     velocity,
     n_parameters,
-    out,
 ):
     # Evaluates one epoch of the regular Gradient Descent
 
@@ -38,14 +37,12 @@ def _nmp_descent_epoch(
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        out[parameter] = objective(current_parameters)
-
-    difference_objective = out[:, 0]
+        difference_outputs[parameter] = objective(current_parameters)
 
     # These parameters will be used for the evaluation in the next epoch
     velocity = (
         momentum * velocity
-        - rate * (difference_objective - outputs[epoch, 0]) / difference
+        - rate * (difference_outputs[:, 0] - outputs[epoch, 0]) / difference
     )
     parameters[epoch + 1] = parameters[epoch] + velocity
 
@@ -60,12 +57,11 @@ def _nmp_partial_epoch(
     difference,
     outputs,
     parameters,
-    difference_objective,
+    difference_outputs,
     parameters_used,
     momentum,
     velocity,
     n_parameters,
-    out,
     generator,
 ):
     # Evaluates one epoch of Partial Gradient Descent
@@ -80,10 +76,9 @@ def _nmp_partial_epoch(
     # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch])
 
-    # Difference objective value is still recorded (as base
-    # evaluation value) for non-differenced parameters
-    # (in current epoch) for consistency and convenience
-    difference_objective = np.repeat(outputs[epoch, 0], n_parameters)
+    for i in nb.prange(n_parameters):
+        difference_outputs[i] = outputs[epoch]
+
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
     for i in nb.prange(param_idx.shape[0]):
@@ -91,14 +86,12 @@ def _nmp_partial_epoch(
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        out[parameter] = objective(current_parameters)
-
-    difference_objective = out[:, 0]
+        difference_outputs[parameter] = objective(current_parameters)
 
     # These parameters will be used for the evaluation in the next epoch
     velocity = (
         momentum * velocity
-        - rate * (difference_objective - outputs[epoch, 0]) / difference
+        - rate * (difference_outputs[:, 0] - outputs[epoch, 0]) / difference
     )
     parameters[epoch + 1] = parameters[epoch] + velocity
 
@@ -113,11 +106,10 @@ def _descent_epoch(
     difference,
     outputs,
     parameters,
-    difference_objective,
+    difference_outputs,
     momentum,
     velocity,
     n_parameters,
-    out,
     metaparameters,
 ):
     # Evaluates one epoch of the regular Gradient Descent
@@ -132,14 +124,12 @@ def _descent_epoch(
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        out[parameter] = objective(current_parameters, metaparameters)
-
-    difference_objective = out[:, 0]
+        difference_outputs[parameter] = objective(current_parameters, metaparameters)
 
     # These parameters will be used for the evaluation in the next epoch
     velocity = (
         momentum * velocity
-        - rate * (difference_objective - outputs[epoch, 0]) / difference
+        - rate * (difference_outputs[:, 0] - outputs[epoch, 0]) / difference
     )
     parameters[epoch + 1] = parameters[epoch] + velocity
 
@@ -154,12 +144,11 @@ def _partial_epoch(
     difference,
     outputs,
     parameters,
-    difference_objective,
+    difference_outputs,
     parameters_used,
     momentum,
     velocity,
     n_parameters,
-    out,
     generator,
     metaparameters,
 ):
@@ -175,10 +164,9 @@ def _partial_epoch(
     # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch], metaparameters)
 
-    # Difference objective value is still recorded (as base
-    # evaluation value) for non-differenced parameters
-    # (in current epoch) for consistency and convenience
-    difference_objective = np.repeat(outputs[epoch, 0], n_parameters)
+    for i in nb.prange(n_parameters):
+        difference_outputs[i] = outputs[epoch]
+
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
     for i in nb.prange(param_idx.shape[0]):
@@ -186,14 +174,12 @@ def _partial_epoch(
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
-        out[parameter] = objective(current_parameters, metaparameters)
-
-    difference_objective = out[:, 0]
+        difference_outputs[parameter] = objective(current_parameters, metaparameters)
 
     # These parameters will be used for the evaluation in the next epoch
     velocity = (
         momentum * velocity
-        - rate * (difference_objective - outputs[epoch, 0]) / difference
+        - rate * (difference_outputs[:, 0] - outputs[epoch, 0]) / difference
     )
     parameters[epoch + 1] = parameters[epoch] + velocity
 
@@ -220,8 +206,7 @@ def _numba_descent(
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
-    out = np.zeros((n_parameters, n_outputs))
-    difference_objective = np.zeros(n_parameters)
+    difference_outputs = np.zeros((n_parameters, n_outputs))
     velocity = 0
 
     if no_metaparameters:
@@ -233,11 +218,10 @@ def _numba_descent(
                 difference,
                 outputs,
                 parameters,
-                difference_objective,
+                difference_outputs,
                 momentum,
                 velocity,
                 n_parameters,
-                out,
             )
     else:
         for epoch, (rate, difference) in enumerate(zip(l, h)):
@@ -248,11 +232,10 @@ def _numba_descent(
                 difference,
                 outputs,
                 parameters,
-                difference_objective,
+                difference_outputs,
                 momentum,
                 velocity,
                 n_parameters,
-                out,
                 metaparameters,
             )
 
@@ -290,8 +273,7 @@ def _numba_partial_descent(
     outputs = np.zeros([epochs, n_outputs])
     parameters = np.zeros([epochs + 1, n_parameters])
     parameters[0] = initial
-    out = np.zeros((n_parameters, n_outputs))
-    difference_objective = np.zeros(n_parameters)
+    difference_outputs = np.zeros((n_parameters, n_outputs))
     generator = np.random.default_rng(rng_seed)
     velocity = 0
 
@@ -304,12 +286,11 @@ def _numba_partial_descent(
                 difference,
                 outputs,
                 parameters,
-                difference_objective,
+                difference_outputs,
                 parameters_used,
                 momentum,
                 velocity,
                 n_parameters,
-                out,
                 generator,
             )
     else:
@@ -321,12 +302,11 @@ def _numba_partial_descent(
                 difference,
                 outputs,
                 parameters,
-                difference_objective,
+                difference_outputs,
                 parameters_used,
                 momentum,
                 velocity,
                 n_parameters,
-                out,
                 generator,
                 metaparameters,
             )
