@@ -15,7 +15,7 @@ def _check_iterables(h, l, epochs):
     if isinstance(h, (int, float)):
         h = Schedule(epochs).constant(h)
     elif isinstance(h, (list, nb.typed.List)):
-        h = np.asarray(h)
+        h = np.array(h)
     elif isinstance(h, np.ndarray):
         pass
     else:
@@ -26,7 +26,7 @@ def _check_iterables(h, l, epochs):
     if isinstance(l, (int, float)):
         l = Schedule(epochs).constant(l)
     elif isinstance(l, (list, nb.typed.List)):
-        l = np.asarray(l)
+        l = np.array(l)
     elif isinstance(l, np.ndarray):
         pass
     else:
@@ -106,7 +106,7 @@ def _check_arguments(
     if isinstance(initial, (int, float)):
         initial = np.array([initial])
     elif isinstance(initial, (list, nb.typed.List)):
-        initial = np.asarray(initial)
+        initial = np.array(initial)
     elif isinstance(initial, (np.ndarray, type(None))):
         pass
     else:
@@ -159,7 +159,7 @@ def _check_arguments(
     if not isinstance(outputs, (list, np.ndarray, type(None))):
         raise ValueError("Outputs should be of type `list` or `np.ndarray`")
     try:
-        len_outputs = len(outputs[1])
+        len_outputs = len(outputs[0])
     except TypeError:
         len_outputs = 1
 
@@ -175,14 +175,12 @@ def _check_arguments(
             "metaparameters should be of type `list`, `nb.typed.List`, `np.ndarray` or `NoneType`"
         )
     if numba and isinstance(metaparameters, list):
-        dt = list()
-        for i, value in enumerate(metaparameters):
-            dt.append((str(value), str(type(value))[8:-2]))
-        metaparameters = np.array(metaparameters, dtype=dt)
-    elif not numba and isinstance(metaparameters, list):
-        metaparameters = np.asarray(metaparameters)
+        metaparameters = np.array(metaparameters)
+        warnings.warn(
+            "In `numba=True` mode lists are converted into `Numpy` arrays, which are homogenous data structures (all elements are of the same datatype). If your metaparameters have varying data types, list-to-array conversion will make them all fo type string. This should be handled inside the objective function by unpacking metaparameters argument and converting different metaparameters into each own data type separately. Alternatively, use Numpy Structured Arrays (more info at: numpy.org/doc/stable/user/basics.rec.html#structured-arrays)."
+        )
     elif isinstance(metaparameters, nb.typed.List):
-        metaparameters = np.asarray(metaparameters)
+        metaparameters = np.array(metaparameters)
     if isinstance(metaparameters, type(None)):
         len_metaparameters = 0
     elif isinstance(metaparameters, (list, nb.typed.List, np.ndarray)):
