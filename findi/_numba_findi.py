@@ -86,7 +86,8 @@ def _nmp_partial_epoch(
     difference_objective = np.repeat(outputs[epoch, 0], n_parameters)
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
-    for parameter in nb.prange(param_idx.shape[0]):
+    for i in nb.prange(param_idx.shape[0]):
+        parameter = param_idx[i]
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
@@ -180,7 +181,8 @@ def _partial_epoch(
     difference_objective = np.repeat(outputs[epoch, 0], n_parameters)
     # Objective function is evaluated only for random parameters because we need it
     # to calculate partial derivatives, while limiting computational expense
-    for parameter in nb.prange(param_idx.shape[0]):
+    for i in nb.prange(param_idx.shape[0]):
+        parameter = param_idx[i]
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
