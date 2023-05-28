@@ -27,19 +27,14 @@ def _nmp_descent_epoch(
 ):
     # Evaluates one epoch of the regular Gradient Descent
 
-    # Evaluating the objective function that will count as
-    # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch])
 
-    # Objective function is evaluated for every (differentiated) parameter
-    # because we need it to calculate partial derivatives
     for parameter in nb.prange(n_parameters):
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
         difference_outputs[parameter] = objective(current_parameters)
 
-    # These parameters will be used for the evaluation in the next epoch
     velocity = (
         momentum * velocity
         - rate * (difference_outputs[:, 0] - outputs[epoch, 0]) / difference
@@ -72,15 +67,11 @@ def _nmp_partial_epoch(
             low=0, high=n_parameters, size=parameters_used, dtype=np.int_
         )
 
-    # Evaluating the objective function that will count as
-    # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch])
 
     for i in nb.prange(n_parameters):
         difference_outputs[i] = outputs[epoch]
 
-    # Objective function is evaluated only for random parameters because we need it
-    # to calculate partial derivatives, while limiting computational expense
     for i in nb.prange(param_idx.shape[0]):
         parameter = param_idx[i]
         current_parameters = parameters[epoch]
@@ -88,7 +79,6 @@ def _nmp_partial_epoch(
 
         difference_outputs[parameter] = objective(current_parameters)
 
-    # These parameters will be used for the evaluation in the next epoch
     velocity = (
         momentum * velocity
         - rate * (difference_outputs[:, 0] - outputs[epoch, 0]) / difference
@@ -114,19 +104,14 @@ def _descent_epoch(
 ):
     # Evaluates one epoch of the regular Gradient Descent
 
-    # Evaluating the objective function that will count as
-    # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch], metaparameters)
 
-    # Objective function is evaluated for every (differentiated) parameter
-    # because we need it to calculate partial derivatives
     for parameter in nb.prange(n_parameters):
         current_parameters = parameters[epoch]
         current_parameters[parameter] = current_parameters[parameter] + difference
 
         difference_outputs[parameter] = objective(current_parameters, metaparameters)
 
-    # These parameters will be used for the evaluation in the next epoch
     velocity = (
         momentum * velocity
         - rate * (difference_outputs[:, 0] - outputs[epoch, 0]) / difference
@@ -160,15 +145,11 @@ def _partial_epoch(
             low=0, high=n_parameters, size=parameters_used, dtype=np.int_
         )
 
-    # Evaluating the objective function that will count as
-    # the base evaluation for this epoch
     outputs[epoch] = objective(parameters[epoch], metaparameters)
 
     for i in nb.prange(n_parameters):
         difference_outputs[i] = outputs[epoch]
 
-    # Objective function is evaluated only for random parameters because we need it
-    # to calculate partial derivatives, while limiting computational expense
     for i in nb.prange(param_idx.shape[0]):
         parameter = param_idx[i]
         current_parameters = parameters[epoch]
@@ -176,7 +157,6 @@ def _partial_epoch(
 
         difference_outputs[parameter] = objective(current_parameters, metaparameters)
 
-    # These parameters will be used for the evaluation in the next epoch
     velocity = (
         momentum * velocity
         - rate * (difference_outputs[:, 0] - outputs[epoch, 0]) / difference

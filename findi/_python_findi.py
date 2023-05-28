@@ -68,12 +68,8 @@ def _python_descent(
 
     if threads == 1:
         for epoch, (rate, difference) in enumerate(zip(l, h)):
-            # Objective function is evaluated for every (differentiated) parameter
-            # because we need it to calculate partial derivatives
             if output_is_number:
                 if no_metaparameters:
-                    # Evaluating the objective function that will count as
-                    # the base evaluation for this epoch
                     outputs[epoch] = objective(parameters[epoch])
 
                     for parameter in range(n_parameters):
@@ -84,8 +80,6 @@ def _python_descent(
 
                         difference_objective[parameter] = objective(current_parameters)
                 else:
-                    # Evaluating the objective function that will count as
-                    # the base evaluation for this epoch
                     outputs[epoch] = objective(parameters[epoch], metaparameters)
 
                     for parameter in range(n_parameters):
@@ -99,8 +93,6 @@ def _python_descent(
                         )
             else:
                 if no_metaparameters:
-                    # Evaluating the objective function that will count as
-                    # the base evaluation for this epoch
                     outputs[epoch] = objective(parameters[epoch])
 
                     for parameter in range(n_parameters):
@@ -113,8 +105,6 @@ def _python_descent(
                             0
                         ]
                 else:
-                    # Evaluating the objective function that will count as
-                    # the base evaluation for this epoch
                     outputs[epoch] = objective(parameters[epoch], metaparameters)
 
                     for parameter in range(n_parameters):
@@ -127,7 +117,6 @@ def _python_descent(
                             current_parameters, metaparameters
                         )[0]
 
-            # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1], velocity = _update(
                 rate,
                 difference_objective,
@@ -142,8 +131,6 @@ def _python_descent(
     elif threads > 1:
         findi._checks._check_threads(threads, parameters)
 
-        # One set of parameters is needed for each partial derivative,
-        # and one is needed for the base case
         current_parameters = np.zeros([n_parameters + 1, n_parameters])
 
         for epoch, (rate, difference) in enumerate(zip(l, h)):
@@ -162,8 +149,6 @@ def _python_descent(
                     delayed(objective)(i, metaparameters) for i in current_parameters
                 )
 
-            # This objective function evaluation will be used as the
-            # base evaluation for this epoch
             outputs[epoch] = parallel_outputs[0]
 
             if output_is_number:
@@ -175,7 +160,6 @@ def _python_descent(
                     [parallel_outputs[i][0] for i in range(1, n_parameters + 1)]
                 )
 
-            # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1], velocity = _update(
                 rate,
                 difference_objective,
@@ -231,12 +215,8 @@ def _python_partial_descent(
         for epoch, (rate, difference) in enumerate(zip(l, h)):
             param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
-            # Objective function is evaluated only for random parameters because we need it
-            # to calculate partial derivatives, while limiting computational expense
             if output_is_number:
                 if no_metaparameters:
-                    # Evaluating the objective function that will count as
-                    # the base evaluation for this epoch
                     outputs[epoch] = objective(parameters[epoch])
 
                     for parameter in range(n_parameters):
@@ -250,13 +230,8 @@ def _python_partial_descent(
                                 current_parameters
                             )
                         else:
-                            # Difference objective value is still recorded (as base
-                            # evaluation value) for non-differenced parameters
-                            # (in current epoch) for consistency and convenience
                             difference_objective[parameter] = outputs[epoch]
                 else:
-                    # Evaluating the objective function that will count as
-                    # the base evaluation for this epoch
                     outputs[epoch] = objective(parameters[epoch], metaparameters)
 
                     for parameter in range(n_parameters):
@@ -270,14 +245,9 @@ def _python_partial_descent(
                                 current_parameters, metaparameters
                             )
                         else:
-                            # Difference objective value is still recorded (as base
-                            # evaluation value) for non-differenced parameters
-                            # (in current epoch) for consistency and convenience
                             difference_objective[parameter] = outputs[epoch]
             else:
                 if no_metaparameters:
-                    # Evaluating the objective function that will count as
-                    # the base evaluation for this epoch
                     outputs[epoch] = objective(parameters[epoch])
 
                     for parameter in range(n_parameters):
@@ -291,13 +261,8 @@ def _python_partial_descent(
                                 current_parameters
                             )[0]
                         else:
-                            # Difference objective value is still recorded (as base
-                            # evaluation value) for non-differenced parameters
-                            # (in current epoch) for consistency and convenience
                             difference_objective[parameter] = outputs[epoch, 0]
                 else:
-                    # Evaluating the objective function that will count as
-                    # the base evaluation for this epoch
                     outputs[epoch] = objective(parameters[epoch], metaparameters)
 
                     for parameter in range(n_parameters):
@@ -311,12 +276,8 @@ def _python_partial_descent(
                                 current_parameters, metaparameters
                             )[0]
                         else:
-                            # Difference objective value is still recorded (as base
-                            # evaluation value) for non-differenced parameters
-                            # (in current epoch) for consistency and convenience
                             difference_objective[parameter] = outputs[epoch, 0]
 
-            # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1], velocity = _update(
                 rate,
                 difference_objective,
@@ -331,15 +292,11 @@ def _python_partial_descent(
     elif threads > 1:
         findi._checks._check_threads(threads, parameters_used)
 
-        # One set of parameters is needed for each partial derivative used,
-        # and one is needed for the base case
         current_parameters = np.zeros([n_parameters + 1, n_parameters])
 
         for epoch, (rate, difference) in enumerate(zip(l, h)):
             param_idx = rng.integers(low=0, high=n_parameters, size=parameters_used)
 
-            # Objective function is evaluated only for random parameters because we need it
-            # to calculate partial derivatives, while limiting computational expense
             current_parameters[0] = parameters[epoch]
             for parameter in range(n_parameters):
                 current_parameters[parameter + 1] = parameters[epoch]
@@ -363,12 +320,8 @@ def _python_partial_descent(
                     ]
                 )
 
-            # This objective function evaluation will be used as the
-            # base evaluation for this epoch
             outputs[epoch] = parallel_outputs[0]
-            # Difference objective value is still recorded (as base
-            # evaluation value) for non-differenced parameters
-            # (in current epoch) for consistency and convenience
+
             if output_is_number:
                 difference_objective = np.full(n_parameters, parallel_outputs[0])
                 difference_objective[param_idx] = np.array(
@@ -380,7 +333,6 @@ def _python_partial_descent(
                     [parallel_outputs[i][0] for i in range(1, parameters_used + 1)]
                 )
 
-            # These parameters will be used for the evaluation in the next epoch
             parameters[epoch + 1], velocity = _update(
                 rate,
                 difference_objective,
