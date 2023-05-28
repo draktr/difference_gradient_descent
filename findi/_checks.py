@@ -7,11 +7,6 @@ from optschedule import Schedule
 
 
 def _check_iterables(h, l, epochs):
-    if not isinstance(epochs, int):
-        raise ValueError("Number of epochs should be an integer")
-    if epochs < 1:
-        raise ValueError("Number of epochs should be positive")
-
     if isinstance(h, (int, float)):
         h = Schedule(epochs).constant(h)
     elif isinstance(h, (list, nb.typed.List)):
@@ -33,6 +28,11 @@ def _check_iterables(h, l, epochs):
         raise ValueError(
             "Learning rates should be of type `int`, `float`, `list`, `nb.typed.List` or `np.ndarray`"
         )
+
+    if not isinstance(epochs, int):
+        raise ValueError("Number of epochs should be an integer")
+    if epochs < 1:
+        raise ValueError("Number of epochs should be positive")
 
     if h.shape[0] != l.shape[0]:
         raise ValueError("Number of differences and learning rates should be equal.")
@@ -77,23 +77,11 @@ def _check_objective(objective, parameters, metaparameters, numba):
     return n_outputs, output_is_number, no_metaparameters
 
 
-def _check_threads(threads, parameters):
-    if isinstance(parameters, int):
-        if parameters + 1 != threads:
-            raise ValueError(
-                "Each parameter should have only one CPU thread, along with one for the base evaluation."
-            )
-    elif len(parameters[0]) + 1 != threads:
-        raise ValueError(
-            "Each parameter should have only one CPU thread, along with one for the base evaluation."
-        )
-
-
 def _check_arguments(
     initial=None,
+    parameters_used=None,
     momentum=None,
     threads=None,
-    parameters_used=None,
     rng_seed=None,
     partial_epochs=None,
     total_epochs=None,
@@ -114,29 +102,11 @@ def _check_arguments(
             "Initial parameters should expressed as either `int`, `float`, `list`, `nb.typed.List` or `np.ndarray`"
         )
 
-    if not isinstance(momentum, (int, float, type(None))):
-        raise ValueError("Momentum should be an `int` or a `float`")
-    if momentum is not None:
-        if momentum < 0:
-            raise ValueError("Momentum should be non-negative")
-
-    if not isinstance(threads, (int, type(None))):
-        raise ValueError("Number of threads should be a positive integer")
-    if threads is not None:
-        if threads < 1:
-            raise ValueError("Number of threads should be a positive integer")
-
     if not isinstance(parameters_used, (int, type(None))):
         raise ValueError("Number of parameters used should be a positive integer")
     if parameters_used is not None:
         if parameters_used < 1:
             raise ValueError("Number of parameters used should be a positive integer")
-
-    if not isinstance(rng_seed, (int, type(None))):
-        raise ValueError("RNG seed should be a non-negative integer")
-    if rng_seed is not None:
-        if rng_seed < 0:
-            raise ValueError("RNG seed should be a non-negative integer")
 
     if not isinstance(partial_epochs, (int, type(None))):
         raise ValueError("Number of partial epochs should be non-negative integer")
@@ -155,6 +125,24 @@ def _check_arguments(
     if total_epochs is not None:
         if total_epochs < 1:
             raise ValueError("Number of total epochs should be a positive integer")
+
+    if not isinstance(momentum, (int, float, type(None))):
+        raise ValueError("Momentum should be an `int` or a `float`")
+    if momentum is not None:
+        if momentum < 0:
+            raise ValueError("Momentum should be non-negative")
+
+    if not isinstance(threads, (int, type(None))):
+        raise ValueError("Number of threads should be a positive integer")
+    if threads is not None:
+        if threads < 1:
+            raise ValueError("Number of threads should be a positive integer")
+
+    if not isinstance(rng_seed, (int, type(None))):
+        raise ValueError("RNG seed should be a non-negative integer")
+    if rng_seed is not None:
+        if rng_seed < 0:
+            raise ValueError("RNG seed should be a non-negative integer")
 
     if not isinstance(outputs, (list, np.ndarray, type(None))):
         raise ValueError("Outputs should be of type `list` or `np.ndarray`")
@@ -196,6 +184,18 @@ def _check_arguments(
             )
 
     return initial, metaparameters
+
+
+def _check_threads(threads, parameters):
+    if isinstance(parameters, int):
+        if parameters + 1 != threads:
+            raise ValueError(
+                "Each parameter should have only one CPU thread, along with one for the base evaluation."
+            )
+    elif len(parameters[0]) + 1 != threads:
+        raise ValueError(
+            "Each parameter should have only one CPU thread, along with one for the base evaluation."
+        )
 
 
 def _check_numba(numba):

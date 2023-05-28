@@ -96,11 +96,11 @@ def _descent_epoch(
     difference,
     outputs,
     parameters,
+    metaparameters,
     difference_outputs,
     momentum,
     velocity,
     n_parameters,
-    metaparameters,
 ):
     # Evaluates one epoch of the regular Gradient Descent
 
@@ -129,13 +129,13 @@ def _partial_epoch(
     difference,
     outputs,
     parameters,
+    metaparameters,
     difference_outputs,
     parameters_used,
     momentum,
     velocity,
     n_parameters,
     generator,
-    metaparameters,
 ):
     # Evaluates one epoch of Partial Gradient Descent
 
@@ -173,8 +173,8 @@ def _numba_descent(
 
     initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
-        metaparameters=metaparameters,
         momentum=momentum,
+        metaparameters=metaparameters,
         numba=numba,
     )
     n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
@@ -212,11 +212,11 @@ def _numba_descent(
                 difference,
                 outputs,
                 parameters,
+                metaparameters,
                 difference_outputs,
                 momentum,
                 velocity,
                 n_parameters,
-                metaparameters,
             )
 
     return outputs, parameters[:-1]
@@ -239,9 +239,9 @@ def _numba_partial_descent(
     initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
         parameters_used=parameters_used,
-        metaparameters=metaparameters,
         momentum=momentum,
         rng_seed=rng_seed,
+        metaparameters=metaparameters,
         numba=numba,
     )
     n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
@@ -282,13 +282,13 @@ def _numba_partial_descent(
                 difference,
                 outputs,
                 parameters,
+                metaparameters,
                 difference_outputs,
                 parameters_used,
                 momentum,
                 velocity,
                 n_parameters,
                 generator,
-                metaparameters,
             )
 
     return outputs, parameters[:-1]
@@ -310,9 +310,9 @@ def _numba_partially_partial_descent(
 
     initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
-        metaparameters=metaparameters,
         partial_epochs=partial_epochs,
         total_epochs=total_epochs,
+        metaparameters=metaparameters,
     )
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
 

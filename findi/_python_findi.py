@@ -49,9 +49,9 @@ def _python_descent(
 
     initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
-        metaparameters=metaparameters,
         momentum=momentum,
         threads=threads,
+        metaparameters=metaparameters,
         numba=numba,
     )
     n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
@@ -192,10 +192,10 @@ def _python_partial_descent(
     initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
         parameters_used=parameters_used,
-        metaparameters=metaparameters,
         momentum=momentum,
         threads=threads,
         rng_seed=rng_seed,
+        metaparameters=metaparameters,
         numba=numba,
     )
     n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
@@ -364,9 +364,9 @@ def _python_partially_partial_descent(
 
     initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
+        parameters_used=parameters_used,
         partial_epochs=partial_epochs,
         total_epochs=total_epochs,
-        parameters_used=parameters_used,
         momentum=momentum,
         threads=threads,
         rng_seed=rng_seed,
