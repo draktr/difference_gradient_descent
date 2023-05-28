@@ -160,12 +160,12 @@ def _check_arguments(
 
     if not isinstance(metaparameters, (list, nb.typed.List, np.ndarray, type(None))):
         raise ValueError(
-            "metaparameters should be of type `list`, `nb.typed.List`, `np.ndarray` or `NoneType`"
+            "`metaparameters` should be of type `list`, `nb.typed.List`, `np.ndarray` or `NoneType`"
         )
     if numba and isinstance(metaparameters, list):
         metaparameters = np.array(metaparameters)
         warnings.warn(
-            "In `numba=True` mode lists are converted into `Numpy` arrays, which are homogenous data structures (all elements are of the same datatype). If your metaparameters have varying data types, list-to-array conversion will make them all fo type string. This should be handled inside the objective function by unpacking metaparameters argument and converting different metaparameters into each own data type separately. Alternatively, use Numpy Structured Arrays (more info at: numpy.org/doc/stable/user/basics.rec.html#structured-arrays)."
+            "In `numba=True` mode lists are converted into `Numpy` arrays, which are homogenous data structures (all elements are of the same data type). If your metaparameters have varying data types, list-to-array conversion will make them all strings. This can and should be handled inside the objective function by unpacking metaparameters argument and converting different metaparameters into each own data type separately. Alternatively, use Numpy Structured Arrays (more info at: numpy.org/doc/stable/user/basics.rec.html#structured-arrays)."
         )
     elif isinstance(metaparameters, nb.typed.List):
         metaparameters = np.array(metaparameters)
