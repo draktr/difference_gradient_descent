@@ -10,7 +10,7 @@ def foo(params, metaparameters):
 
 
 def loo(params, permission):
-    if permission:
+    if permission[0]:
         return [(params[0] + 2) ** 2]
 
 

@@ -18,8 +18,8 @@ the epochs.Parallel computing for performance benefits is supported
 in all of these functions. If `numba=True` parallelization is done
 by `Numba`, otherwise it is done by `joblib` library. Objective
 functions with multiple outputs are supported (only the first one
-is taken as objective value to be minimized), as well as constant
-objective function quasi-hyperparameters that are held constant
+is taken as objective value to be minimized), as well as
+objective function metaparameters that are held constant
 throughout the epochs. Furthermore, `values_out` function is
 included for compactly exporting values of outputs, parameters
 and metaparameters for each epoch.

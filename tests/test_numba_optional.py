@@ -12,8 +12,8 @@ def foo(params, metaparameters):
 
 
 @nb.njit
-def loo(params, permission):
-    if permission:
+def loo(params, metaparameters):
+    if metaparameters[0]:
         return [(params[0] + 2) ** 2]
 
 

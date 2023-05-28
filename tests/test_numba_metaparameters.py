@@ -5,8 +5,8 @@ from optschedule import Schedule
 
 
 @nb.njit
-def foo(inputs, permission):
-    if permission:
+def foo(inputs, metaparameters):
+    if metaparameters[0]:
         return [(inputs[0] + 2 + inputs[1]) ** 2]
 
 

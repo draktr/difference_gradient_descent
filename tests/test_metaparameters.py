@@ -4,7 +4,7 @@ from optschedule import Schedule
 
 
 def foo(inputs, permission):
-    if permission:
+    if permission[0]:
         return [(inputs[0] + 2 + inputs[1]) ** 2]
 
 

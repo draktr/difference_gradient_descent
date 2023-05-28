@@ -50,7 +50,7 @@ def test_partial(differences, rates):
         h=differences,
         l=rates,
         epochs=1000,
-        parameters_used=1,
+        parameters_used=2,
         numba=True,
     )
 

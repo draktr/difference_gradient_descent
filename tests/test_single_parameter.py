@@ -30,11 +30,7 @@ def rates(scheduler):
 
 def test_one_thread(differences, rates):
     outputs, parameters = descent(
-        objective=foo,
-        initial=[5],
-        h=differences,
-        l=rates,
-        epochs=1000,
+        objective=foo, initial=[5], h=differences, l=rates, epochs=1000
     )
 
     assert outputs[-1] <= 0.1
