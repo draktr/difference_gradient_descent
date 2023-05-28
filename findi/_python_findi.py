@@ -364,12 +364,9 @@ def _python_partially_partial_descent(
 
     initial, metaparameters = findi._checks._check_arguments(
         initial=initial,
-        parameters_used=parameters_used,
         partial_epochs=partial_epochs,
         total_epochs=total_epochs,
-        momentum=momentum,
-        threads=threads,
-        rng_seed=rng_seed,
+        metaparameters=metaparameters,
     )
     (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
 
@@ -406,6 +403,8 @@ def _python_partially_partial_descent(
 
 
 def values_out(outputs, parameters, metaparameters=None, columns=None):
+    # Compiles outputs, parameters and metaparameters into a Pandas DataFrame
+
     findi._checks._check_arguments(
         outputs=outputs,
         parameters=parameters,
