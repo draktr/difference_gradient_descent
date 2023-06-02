@@ -10,10 +10,4 @@ build:
 sphinx:
    configuration: docs/conf.py
 
-# Optionally declare the Python requirements required to build your docs
-python:
-  version: 3.8
-  install:
-    - requirements: requirements.txt
-    - method: pip
-      path: .
+requirements_file: requirements.txt
