@@ -7,7 +7,7 @@ FinDi: Finite Difference Gradient Descent can optimize any function, including t
 
 ## Installation
 
-Preferred method to install `findi` is through Python's package installer pip. To install `findi`, run this command in your terminal
+A preferred method to install `findi` is through Python's package installer pip. To install `findi`, run this command in your terminal
 
 ```shell
 pip install findi
@@ -55,3 +55,39 @@ v_{t+1} = v_{t} - \gamma
 $$
 
 where $\gamma$ is the same as in the regular GD. Given appropriate $\gamma$, FDGD still constructs a monotonic sequence $f(v_{0}) \geq f(v_{1}) \geq f(v_{2}) \geq \cdot \cdot \cdot$, however, due to the gradient approximation the convergence has an error proportional to the error discussed in *Differentiation* subsection. For more details refer to the Mathematical Guide in the documentation.
+
+## Features
+
+### Optimization Algorithms
+
+* `descent()` - regular FDGD algorithm
+* `partial_descent()` - FDGD algorithm where in each epoch `parameters_used` number of parameters are randomly selected to be differenced. This approach is useful in cases where the evaluation of objective function is computationally expensive
+* `partially_partial_descent()` - FDGD algorithm that uses `partial_descent()` algorithm for the first `partial_epochs` number of epochs and `descent()` for the remaining epochs. This approach is useful as it combines the computational efficiency of `partial_descent()` with the approximational accuracy of `descent()`
+
+### Computational
+
+* Numba mode - Numba just-in-time compilation is available for **all** algorithms, including automatically parallelized evaluation. This drastically decreases computation time, however, it also requires the objective function to be Numba-compiled
+* `joblib` parallelization - supported in Python mode. This is helpful, especially with high-dimensional problems where Numba objective function is unfeasible
+* `values_out()` function - exports outputs, parameters, and constants values for each epoch as `Pandas` `DataFrame`. This is useful for, among other things, algorithm convergence analytics and hyperparameter (e.g. learning rates and differences) tuning
+* Variable learning rates and difference values - other than scalars, `l` and `h` arguments also accept array_like structures (e.g. lists and `Numpy` arrays). These can be constructed manually, by the library [OptSchedule](https://pypi.org/project/optschedule/) which provides a variety of decay schedules
+* `momentum` hyperparameter - accelerates gradient descent in the relevant direction and dampens oscillations. `momentum = 0` (default value) implies no acceleration and dampening. The update rule with `momentum > 0` is
+
+$$
+v_{t} = m*v_{t-1} - l_{t} * \frac{F(X_{t})-F(X_{t-1})}{h}
+X_{t} = X_{t-1} + v_{t}
+$$
+
+### Non-Mathematical Functions as Objectives
+
+* support for **metaparameters** - FinDi accepts objective functions that require *metaparameters* to be passed to it. By *metaparameter* is considered any parameter passed to the objective function that **will not** be differenced and its value will be held constant throughout epochs
+* support for **multiple outputs** - FinDi accepts objective functions that return more than one value. For example, if the objective function has a convex optimization routine within it, FinDi allows for the objective function to return the regular objective value along with the solutions to the optimization problem. The first value of the return structure will be taken as the objective value to be minimized
+
+## Advantages Over Other Optimization Techniques
+
+1) Optimizing objective functions that **cannot be expressed or solved analytically** or **discontinuous functions**
+2) **Intuitive and easy to communicate** its implementation, unlike most of the derivative-free optimization methods
+3) Convenient work with blackbox or proprietary objective functions through metaparameters, where source code might be inaccessible
+4) Increased computational efficiency with Numba **just-in-time compilation**
+5) Supports **parallelization** via `joblib` or `numba` library
+6) **Partial Gradient Descent** makes high-dimensional, simple problems less computationally expensive to solve
+7) Built-in support for **variable learning rates and differences**
