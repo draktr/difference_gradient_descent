@@ -91,3 +91,46 @@ $$
 5) Supports **parallelization** via `joblib` or `numba` library
 6) **Partial Gradient Descent** makes high-dimensional, simple problems less computationally expensive to solve
 7) Built-in support for **variable learning rates and differences**
+
+## A Quick Example
+
+Below is a simple demonstrative example to show how to use `findi`. More examples can be found in [the documentation](https://findi.readthedocs.io/en/latest/), including the examples of problems that can **only** be solved by `findi` and not by other Python Gradient Descent implementations.
+
+```python
+import findi as fd
+
+# Defining the objective function
+def foo(params):
+    return [(params[0]+2)**2]
+
+# Descent
+outputs, parameters = fd.descent(
+    objective=foo,
+    initial=5,
+    h=0.0001,
+    l=0.01,
+    epochs=1000,
+)
+
+print("Solution (argmin): ", parameters[-1])
+print("Objective value at solution (min): ", outputs[-1])
+
+# Saves values of outputs and parameters as Pandas DataFrame...
+values = fd.values_out(outputs, parameters, columns=["x"])
+# ...to be stored as a CSV file
+values.to_csv("values.csv")
+```
+
+## Project Principles
+
+* Easy to be understood and used by those with little computer science background, including scientists, researchers and industry practitioners
+* Flexibility for proprietary modifications
+* Emphasis on computational efficiency
+* Use consistency across approaches (Numba vs Python, regular Gradient Descent vs Partial Gradient Descent etc.)
+* Tested
+* Dedicated and detailed technical and applicative documentation
+* Formatting deferred to [Black](https://github.com/psf/black)
+
+## Future Development
+
+Feature requests are more than welcome through the Issues forum, as are bug reports and improvement recommendations. Anyone is more than welcome to become a contributor or maintainer.
