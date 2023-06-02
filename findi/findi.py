@@ -1,5 +1,5 @@
 """
-The ``findi`` houses public functions that a user will use to
+The ``findi`` contains public functions that a user will use to
 for optimization. They wrap functions from `_numba_findi` and
 `_python_findi` modules allowing increased performance and
 flexibility. The functions optimize the `objective` via Gradient
@@ -77,7 +77,7 @@ def descent(
                   defaults to False
     :type numba: bool, optional
     :return: Objective function outputs and parameters for each epoch
-    :rtype: ndarray
+    :rtype: ndarray, ndarray
     """
 
     _checks._check_numba(numba=numba)
@@ -167,7 +167,7 @@ def partial_descent(
                   defaults to False
     :type numba: bool, optional
     :return: Objective function outputs and parameters for each epoch
-    :rtype: ndarray
+    :rtype: ndarray, ndarray
     """
 
     _checks._check_numba(numba=numba)
@@ -265,7 +265,7 @@ def partially_partial_descent(
                   defaults to False
     :type numba: bool, optional
     :return: Objective function outputs and parameters for each epoch
-    :rtype: ndarray
+    :rtype: ndarray, ndarray
     """
 
     if not numba:

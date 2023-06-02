@@ -2,8 +2,8 @@
 Mathematical Guide
 ==================
 
-Intro
------
+Introduction
+------------
 
 This serves as technical documentation for the mathematical background
 behind FinDi: Finite Difference Gradient Descent Python optimizer.
@@ -133,7 +133,6 @@ error for central difference approximation is smaller and is given by
    \frac{f(x+\frac{h}{2})-f(x-\frac{h}{2})}{h} = h^{2} \frac{f'''(\eta_{1})+f'''(\eta_{2})}{12}
 
 where :math:`\eta_{1} \in (x, x+h)` and :math:`\eta_{2} \in (x-h, x).`
-(cite numdiff.pdf)
 
 Gradient Descent
 ~~~~~~~~~~~~~~~~

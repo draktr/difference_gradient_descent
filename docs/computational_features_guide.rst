@@ -17,7 +17,7 @@ Numba-compatible. Numerical computation functions generally are or can
 be made Numba-compatible, but for more information refer to `Numba
 documentation <https://numba.readthedocs.io/en/stable/>`__.
 
-Parallelization using ``joblib`` Library
+Parallelization Using ``joblib`` Library
 ----------------------------------------
 
 In Python mode (default, ``numba=False``) parallelization of the
