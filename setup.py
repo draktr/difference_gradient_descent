@@ -13,7 +13,7 @@ setup(
     author="draktr",
     license="MIT License",
     packages=["findi"],
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=["numpy", "pandas", "numba", "joblib", "optschedule"],
     keywords="optimization, gradient-descent, numerical-analysis, numerical-differentiation",
     classifiers=[
