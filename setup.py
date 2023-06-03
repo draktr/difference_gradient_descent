@@ -12,7 +12,7 @@ setup(
     url="https://github.com/draktr/findi-descent",
     author="draktr",
     license="MIT License",
-    packages=["findi-descent"],
+    packages=["findi"],
     python_requires=">=3.8",
     install_requires=["numpy", "pandas", "numba", "joblib", "optschedule"],
     keywords="optimization, gradient-descent, numerical-analysis, numerical-differentiation",
