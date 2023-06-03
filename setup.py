@@ -4,15 +4,15 @@ with open("README.md", "r") as f:
     desc = f.read()
 
 setup(
-    name="findi",
+    name="findi-descent",
     version="0.1.0",
     description="FinDi: Finite Difference Gradient Descent can optimize any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.",
     long_description=desc,
     long_description_content_type="text/markdown",
-    url="https://github.com/draktr/findi",
+    url="https://github.com/draktr/findi-descent",
     author="draktr",
     license="MIT License",
-    packages=["findi"],
+    packages=["findi-descent"],
     python_requires=">=3.8",
     install_requires=["numpy", "pandas", "numba", "joblib", "optschedule"],
     keywords="optimization, gradient-descent, numerical-analysis, numerical-differentiation",
@@ -36,7 +36,7 @@ setup(
         "Topic :: Scientific/Engineering :: Physics",
     ],
     project_urls={
-        "Documentation": "https://findi.readthedocs.io/en/latest/",
-        "Issues": "https://github.com/draktr/findi/issues",
+        "Documentation": "https://findi-descent.readthedocs.io/en/latest/",
+        "Issues": "https://github.com/draktr/findi-descent/issues",
     },
 )

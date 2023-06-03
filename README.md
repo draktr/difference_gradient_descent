@@ -3,21 +3,21 @@
 FinDi: Finite Difference Gradient Descent can optimize any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.
 
 * Free software: MIT license
-* Documentation: <https://findi.readthedocs.io/en/latest/>
+* Documentation: <https://findi-descent.readthedocs.io/en/latest/>
 
 ## Installation
 
 A preferred method to install `findi` is through Python's package installer pip. To install `findi`, run this command in your terminal
 
 ```shell
-pip install findi
+pip install findi-descent
 ```
 
 Alternatively, you can install the package directly from GitHub:
 
 ```shell
-git clone -b development https://github.com/draktr/findi.git
-cd findi
+git clone -b development https://github.com/draktr/findi-descent.git
+cd findi-descent
 python setup.py install
 ```
 
@@ -94,7 +94,7 @@ $$
 
 ## A Quick Example
 
-Below is a simple demonstrative example to show how to use `findi`. More examples can be found in [the documentation](https://findi.readthedocs.io/en/latest/), including the examples of problems that can **only** be solved by `findi` and not by other Python Gradient Descent implementations.
+Below is a simple demonstrative example to show how to use `findi`. More examples can be found in [the documentation](https://findi-descent.readthedocs.io/en/latest/), including the examples of problems that can be solved by `findi` and not by other Python Gradient Descent implementations.
 
 ```python
 import findi as fd
