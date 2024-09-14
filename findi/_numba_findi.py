@@ -31,7 +31,9 @@ def _nmp_descent_epoch(
 
     for parameter in nb.prange(n_parameters):
         current_parameters = parameters[epoch]
-        current_parameters[parameter] = current_parameters[parameter] + difference
+        current_parameters[parameter] = (
+            current_parameters[parameter] + difference[parameter]
+        )
 
         difference_outputs[parameter] = objective(current_parameters)
 
@@ -75,7 +77,9 @@ def _nmp_partial_epoch(
     for i in nb.prange(param_idx.shape[0]):
         parameter = param_idx[i]
         current_parameters = parameters[epoch]
-        current_parameters[parameter] = current_parameters[parameter] + difference
+        current_parameters[parameter] = (
+            current_parameters[parameter] + difference[parameter]
+        )
 
         difference_outputs[parameter] = objective(current_parameters)
 
@@ -108,7 +112,9 @@ def _descent_epoch(
 
     for parameter in nb.prange(n_parameters):
         current_parameters = parameters[epoch]
-        current_parameters[parameter] = current_parameters[parameter] + difference
+        current_parameters[parameter] = (
+            current_parameters[parameter] + difference[parameter]
+        )
 
         difference_outputs[parameter] = objective(current_parameters, metaparameters)
 
@@ -153,7 +159,9 @@ def _partial_epoch(
     for i in nb.prange(param_idx.shape[0]):
         parameter = param_idx[i]
         current_parameters = parameters[epoch]
-        current_parameters[parameter] = current_parameters[parameter] + difference
+        current_parameters[parameter] = (
+            current_parameters[parameter] + difference[parameter]
+        )
 
         difference_outputs[parameter] = objective(current_parameters, metaparameters)
 
@@ -180,7 +188,7 @@ def _numba_descent(
     n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
-    (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
+    (h, l) = findi._checks._check_iterables(h, l, epochs, initial.shape[0])
 
     n_parameters = initial.shape[0]
     outputs = np.zeros([epochs, n_outputs])
@@ -247,7 +255,7 @@ def _numba_partial_descent(
     n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
-    (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
+    (h, l) = findi._checks._check_iterables(h, l, epochs, initial.shape[0])
 
     n_parameters = initial.shape[0]
     outputs = np.zeros([epochs, n_outputs])
@@ -314,7 +322,7 @@ def _numba_partially_partial_descent(
         total_epochs=total_epochs,
         metaparameters=metaparameters,
     )
-    (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
+    (h, l) = findi._checks._check_iterables(h, l, total_epochs, initial.shape[0])
 
     outputs_p, parameters_p = _numba_partial_descent(
         objective=objective,

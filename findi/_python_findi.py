@@ -57,7 +57,7 @@ def _python_descent(
     n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
-    (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
+    (h, l) = findi._checks._check_iterables(h, l, epochs, initial.shape[0])
 
     n_parameters = initial.shape[0]
     outputs = np.zeros([epochs, n_outputs])
@@ -75,7 +75,7 @@ def _python_descent(
                     for parameter in range(n_parameters):
                         current_parameters = parameters[epoch]
                         current_parameters[parameter] = (
-                            current_parameters[parameter] + difference
+                            current_parameters[parameter] + difference[parameter]
                         )
 
                         difference_objective[parameter] = objective(current_parameters)
@@ -85,7 +85,7 @@ def _python_descent(
                     for parameter in range(n_parameters):
                         current_parameters = parameters[epoch]
                         current_parameters[parameter] = (
-                            current_parameters[parameter] + difference
+                            current_parameters[parameter] + difference[parameter]
                         )
 
                         difference_objective[parameter] = objective(
@@ -98,7 +98,7 @@ def _python_descent(
                     for parameter in range(n_parameters):
                         current_parameters = parameters[epoch]
                         current_parameters[parameter] = (
-                            current_parameters[parameter] + difference
+                            current_parameters[parameter] + difference[parameter]
                         )
 
                         difference_objective[parameter] = objective(current_parameters)[
@@ -110,7 +110,7 @@ def _python_descent(
                     for parameter in range(n_parameters):
                         current_parameters = parameters[epoch]
                         current_parameters[parameter] = (
-                            current_parameters[parameter] + difference
+                            current_parameters[parameter] + difference[parameter]
                         )
 
                         difference_objective[parameter] = objective(
@@ -138,7 +138,7 @@ def _python_descent(
             for parameter in range(n_parameters):
                 current_parameters[parameter + 1] = parameters[epoch]
                 current_parameters[parameter + 1, parameter] = (
-                    current_parameters[0, parameter] + difference
+                    current_parameters[0, parameter] + difference[parameter]
                 )
             if no_metaparameters:
                 parallel_outputs = Parallel(n_jobs=threads)(
@@ -201,7 +201,7 @@ def _python_partial_descent(
     n_outputs, output_is_number, no_metaparameters = findi._checks._check_objective(
         objective, initial, metaparameters, numba
     )
-    (h, l, epochs) = findi._checks._check_iterables(h, l, epochs)
+    (h, l) = findi._checks._check_iterables(h, l, epochs, initial.shape[0])
 
     n_parameters = initial.shape[0]
     outputs = np.zeros([epochs, n_outputs])
@@ -223,7 +223,7 @@ def _python_partial_descent(
                         if parameter in param_idx:
                             current_parameters = parameters[epoch]
                             current_parameters[parameter] = (
-                                current_parameters[parameter] + difference
+                                current_parameters[parameter] + difference[parameter]
                             )
 
                             difference_objective[parameter] = objective(
@@ -238,7 +238,7 @@ def _python_partial_descent(
                         if parameter in param_idx:
                             current_parameters = parameters[epoch]
                             current_parameters[parameter] = (
-                                current_parameters[parameter] + difference
+                                current_parameters[parameter] + difference[parameter]
                             )
 
                             difference_objective[parameter] = objective(
@@ -254,7 +254,7 @@ def _python_partial_descent(
                         if parameter in param_idx:
                             current_parameters = parameters[epoch]
                             current_parameters[parameter] = (
-                                current_parameters[parameter] + difference
+                                current_parameters[parameter] + difference[parameter]
                             )
 
                             difference_objective[parameter] = objective(
@@ -269,7 +269,7 @@ def _python_partial_descent(
                         if parameter in param_idx:
                             current_parameters = parameters[epoch]
                             current_parameters[parameter] = (
-                                current_parameters[parameter] + difference
+                                current_parameters[parameter] + difference[parameter]
                             )
 
                             difference_objective[parameter] = objective(
@@ -302,7 +302,7 @@ def _python_partial_descent(
                 current_parameters[parameter + 1] = parameters[epoch]
                 if parameter in param_idx:
                     current_parameters[parameter + 1, parameter] = (
-                        current_parameters[0, parameter] + difference
+                        current_parameters[0, parameter] + difference[parameter]
                     )
 
             if no_metaparameters:
@@ -368,7 +368,7 @@ def _python_partially_partial_descent(
         total_epochs=total_epochs,
         metaparameters=metaparameters,
     )
-    (h, l, total_epochs) = findi._checks._check_iterables(h, l, total_epochs)
+    (h, l) = findi._checks._check_iterables(h, l, total_epochs, initial.shape[0])
 
     outputs_p, parameters_p = _python_partial_descent(
         objective=objective,

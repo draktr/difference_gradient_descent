@@ -3,27 +3,56 @@ import numba as nb
 import numbers
 from inspect import signature
 import warnings
-from optschedule import Schedule
 
 
-def _check_iterables(h, l, epochs):
+def _check_iterables(h, l, epochs, n_parameters):
     if isinstance(h, (int, float)):
-        h = Schedule(epochs).constant(h)
+        h = np.full((epochs, n_parameters), h)
     elif isinstance(h, (list, nb.typed.List)):
         h = np.array(h)
+        if h.shape == (epochs,):
+            h = np.full((epochs, n_parameters), h.reshape(epochs, 1))
+        elif h.shape == (epochs, 1):
+            h = np.full((epochs, n_parameters), h)
+        elif h.shape != (epochs, n_parameters):
+            raise ValueError(
+                "`h.shape` is invalid. Please provide differences `h` in form of a constant, or array-like of shape (epochs,) or (epochs, n_parameters)"
+            )
     elif isinstance(h, np.ndarray):
-        pass
+        if h.shape == (epochs,):
+            h = np.full((epochs, n_parameters), h.reshape(epochs, 1))
+        elif h.shape == (epochs, 1):
+            h = np.full((epochs, n_parameters), h)
+        elif h.shape != (epochs, n_parameters):
+            raise ValueError(
+                "`h.shape` is invalid. Please provide differences `h` in form of a constant, or array-like of shape (epochs,) or (epochs, n_parameters)"
+            )
     else:
         raise ValueError(
             "Differences should be of type `int`, `float`, `list`, `nb.typed.List` or `np.ndarray`"
         )
 
     if isinstance(l, (int, float)):
-        l = Schedule(epochs).constant(l)
+        l = np.full((epochs, n_parameters), l)
     elif isinstance(l, (list, nb.typed.List)):
         l = np.array(l)
+        if l.shape == (epochs,):
+            l = np.full((epochs, n_parameters), l.reshape(epochs, 1))
+        elif l.shape == (epochs, 1):
+            l = np.full((epochs, n_parameters), l)
+        elif l.shape != (epochs, n_parameters):
+            raise ValueError(
+                "`l.shape` is invalid. Please provide learning rate(s) `l` in form of a constant, or array-like of shape (epochs,) or (epochs, n_parameters)"
+            )
     elif isinstance(l, np.ndarray):
-        pass
+        if l.shape == (epochs,):
+            l = np.full((epochs, n_parameters), l.reshape(epochs, 1))
+        elif l.shape == (epochs, 1):
+            l = np.full((epochs, n_parameters), l)
+        elif l.shape != (epochs, n_parameters):
+            raise ValueError(
+                "`l.shape` is invalid. Please provide learning rate(s) `l` in form of a constant, or array-like of shape (epochs,) or (epochs, n_parameters)"
+            )
     else:
         raise ValueError(
             "Learning rates should be of type `int`, `float`, `list`, `nb.typed.List` or `np.ndarray`"
@@ -41,7 +70,7 @@ def _check_iterables(h, l, epochs):
             "Number of epochs, differences and learning rates given should be equal."
         )
 
-    return h, l, epochs
+    return h, l
 
 
 def _check_objective(objective, parameters, metaparameters, numba):
