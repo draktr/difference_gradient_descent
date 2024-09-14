@@ -14,7 +14,7 @@ setup(
     license="MIT License",
     packages=["findi"],
     python_requires=">=3.8",
-    install_requires=["numpy", "pandas", "numba", "joblib", "optschedule"],
+    install_requires=["numpy", "pandas", "numba", "joblib"],
     keywords="optimization, gradient-descent, numerical-analysis, numerical-differentiation",
     classifiers=[
         "Development Status :: 4 - Beta",
