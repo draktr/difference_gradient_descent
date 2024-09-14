@@ -2,7 +2,7 @@ Examples
 ========
 
 Example 1: A Simple Example
----------------
+---------------------------
 
 Below is a simple demonstrative example to show how to use ``findi``.
 More examples can be found in `the
@@ -36,7 +36,7 @@ not by other Python Gradient Descent implementations.
    values.to_csv("values.csv")
 
 Example 2: Non-Analytical, Non-Mathematical Objective Function
-----------
+--------------------------------------------------------------
 
 Below is an example of a problem that minimizes the sum of squares
 between some data and some values that can be or are a function of
