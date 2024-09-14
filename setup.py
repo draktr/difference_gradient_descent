@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="findi-descent",
-    version="0.1.0",
+    version="0.2.0",
     description="FinDi: Finite Difference Gradient Descent can optimize any function, including the ones without analytic form, by employing finite difference numerical differentiation within a gradient descent algorithm.",
     long_description=desc,
     long_description_content_type="text/markdown",

@@ -34,5 +34,5 @@ from findi.findi import (
 
 __all__ = [s for s in dir() if not s.startswith("_")]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "draktr"
